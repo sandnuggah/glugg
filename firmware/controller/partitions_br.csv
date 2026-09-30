@@ -1,0 +1,8 @@
+# Name,   Type, SubType, Offset,  Size, Flags
+# Offline controller: no RCP auto-update, so the 600K rcp_fw partition became a bigger app and the PAA trust store.
+# coredump keeps the last crash for `idf.py coredump-info` (48 h soak test).
+nvs,        data, nvs,     ,        0x10000,
+phy_init,   data, phy,     ,        0x1000,
+factory,    app,  factory, ,        0x380000,
+paa_cert,   data, spiffs,  ,        0x40000,
+coredump,   data, coredump,,        0x20000,

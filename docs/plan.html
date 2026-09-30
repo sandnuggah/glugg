@@ -1,0 +1,893 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Glugg</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: a single bench-notebook column; the wiring diagram and architecture figure break out wider, everything else reads at ~68ch. */
+:root {
+  --bg: #f4f5f2;
+  --surface: #ffffff;
+  --fg: #1a1d1b;
+  --muted: #5a625c;
+  --line: #d6dbd4;
+  --accent: #17614a;
+  --accent-soft: #e2eee8;
+  /* wire colours carry meaning in the diagram */
+  --w5v: #d0312d;
+  --wgnd: #2b2f2d;
+  --wdata: #b97f00;
+  --wL: #8a5a2b;
+  --wN: #2f6fd1;
+  --wPE: #3f8f3a;
+  --lit: #f2a900;
+  --wuart: #7a4fc9;
+  --high: #b42318;
+  --high-soft: #fbe9e7;
+  --med: #9a5800;
+  --med-soft: #fbf1e1;
+  --low: #3f6a55;
+  --low-soft: #e6efe9;
+  --ledw: #dfe3de;
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111412; --surface: #191d1b; --fg: #e5e9e6; --muted: #9ba49e; --line: #2d3430;
+    --accent: #5cc79e; --accent-soft: #1b2d25;
+    --w5v: #ff6b63; --wgnd: #c3cac5; --wdata: #f0b429; --wL: #c9925c; --wN: #6ea2ff; --wPE: #6cc766; --lit: #ffc233; --wuart: #b79cff;
+    --high: #ff8a80; --high-soft: #3a1c1a; --med: #f2b25c; --med-soft: #33271a; --low: #8fd0b0; --low-soft: #1c2a23; --ledw: #cfd6d1;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111412; --surface: #191d1b; --fg: #e5e9e6; --muted: #9ba49e; --line: #2d3430;
+  --accent: #5cc79e; --accent-soft: #1b2d25;
+  --w5v: #ff6b63; --wgnd: #c3cac5; --wdata: #f0b429; --wL: #c9925c; --wN: #6ea2ff; --wPE: #6cc766; --lit: #ffc233; --wuart: #b79cff;
+  --high: #ff8a80; --high-soft: #3a1c1a; --med: #f2b25c; --med-soft: #33271a; --low: #8fd0b0; --low-soft: #1c2a23; --ledw: #cfd6d1;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--f-body); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 48px 96px; display: grid; gap: 56px; }
+.col { max-width: 72ch; display: grid; gap: 16px; min-width: 0; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.75rem; font-weight: 600; }
+h3 { font-size: 1.2rem; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, .mono { font-family: var(--f-mono); font-size: 0.88em; }
+code { background: var(--accent-soft); padding: 0.1em 0.35em; border-radius: 3px; overflow-wrap: anywhere; }
+.eyebrow { font-family: var(--f-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.muted { color: var(--muted); }
+ul, ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+
+header.top { display: grid; gap: 14px; max-width: 72ch; }
+.parts { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font-family: var(--f-mono); font-size: 0.78rem; padding: 3px 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
+
+.verdict { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 20px 22px; display: grid; gap: 10px; max-width: 72ch; }
+.verdict h2 { font-size: 1.25rem; }
+.verdict .row { display: grid; grid-template-columns: 7.5rem 1fr; gap: 4px 16px; }
+.verdict .row > span:first-child { font-family: var(--f-mono); font-size: 0.8rem; color: var(--muted); padding-top: 3px; }
+@media (max-width: 560px) { .verdict .row { grid-template-columns: 1fr; } }
+
+figure { margin: 0; display: grid; gap: 12px; min-width: 0; }
+.diagram { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.diagram svg { display: block; width: 100%; min-width: 760px; height: auto; color: var(--fg); font-family: var(--f-mono); }
+figcaption { font-size: 0.92rem; color: var(--muted); max-width: 80ch; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.85rem; }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.legend i { display: inline-block; width: 22px; height: 4px; border-radius: 2px; }
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+th { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; background: var(--bg); }
+td.w { white-space: nowrap; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+.callout { border-left: 3px solid var(--high); background: var(--high-soft); padding: 12px 16px; border-radius: 0 6px 6px 0; display: grid; gap: 6px; }
+.callout.note { border-color: var(--accent); background: var(--accent-soft); }
+
+.sev { font-family: var(--f-mono); font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
+.sev.high { color: var(--high); background: var(--high-soft); }
+.sev.med { color: var(--med); background: var(--med-soft); }
+.sev.low { color: var(--low); background: var(--low-soft); }
+
+.phases { display: grid; gap: 0; counter-reset: ph; max-width: 80ch; }
+.phase { display: grid; grid-template-columns: 3.2rem 1fr; gap: 0 16px; }
+.phase .n { font-family: var(--f-display); font-weight: 700; font-size: 1.5rem; color: var(--accent); position: relative; }
+.phase .n::after { content: ""; position: absolute; left: 0.55rem; top: 2.3rem; bottom: 0; width: 2px; background: var(--line); }
+.phase:last-child .n::after { display: none; }
+.phase .body { padding-bottom: 28px; display: grid; gap: 8px; min-width: 0; }
+.gate { font-size: 0.92rem; border: 1px dashed var(--accent); border-radius: 6px; padding: 8px 12px; }
+.gate b { font-family: var(--f-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-right: 6px; }
+
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.fact { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 16px 18px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.fact ul { font-size: 0.9rem; }
+.fact .src { font-size: 0.8rem; }
+
+.behav { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.state { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; font-size: 0.92rem; }
+.px { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); margin-top: 2px; }
+.px.on { background: var(--lit); border-color: var(--lit); box-shadow: 0 0 10px var(--lit); }
+.px.off { background: transparent; }
+.px.stale { background: transparent; border: 2px dashed var(--muted); }
+.px.pulse { background: var(--accent); border-color: var(--accent); animation: pulse 1.6s ease-in-out infinite; }
+.px.sweep { background: var(--ledw); border-color: var(--muted); animation: pulse 1.4s ease-in-out infinite; }
+.px.wait { background: var(--ledw); border-color: var(--muted); }
+.px.fail { background: var(--high); border-color: var(--high); }
+@keyframes pulse { 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .px.pulse, .px.sweep { animation: none; } }
+
+.decisions { display: grid; gap: 12px; max-width: 80ch; }
+.decision { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 14px 18px; display: grid; gap: 6px; }
+.decision .rec { font-size: 0.9rem; color: var(--accent); }
+
+.sources { font-size: 0.88rem; columns: 2 320px; column-gap: 32px; }
+.sources li { break-inside: avoid; overflow-wrap: anywhere; }
+.csv { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); max-width: 36rem; overflow: hidden; }
+.csv-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--bg); }
+.csv pre { margin: 0; padding: 12px 14px; font: 0.9rem/1.6 var(--f-mono); overflow-x: auto; user-select: all; }
+.csv button { font: 500 0.8rem var(--f-mono); color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 5px; padding: 4px 12px; cursor: pointer; }
+.csv button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono-nums td { font-variant-numeric: tabular-nums; }
+.status { font-size: 0.92rem; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.status .sev { flex: none; }
+.where { font-size: 0.92rem; }
+tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); background: var(--bg); }
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <span class="eyebrow">Project plan · 30 Sep 2026 · rev 9</span>
+  <h1>Glugg</h1>
+  <p class="lede">Glugg, Swedish for a small opening in a wall, keeps watch over the windows of your wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT window sensors and lights one LED per open window on an 8-LED strip. Your ESP32-H2 is its Thread radio. Sensor 1 gets LED 1, sensor 2 gets LED 2, in the order they are added.</p>
+  <div class="parts">
+    <span class="chip">Mean Well RS-15-5 (or HDR-15-5)</span>
+    <span class="chip">Waveshare ESP32-S3-Zero-N8R8 (new)</span>
+    <span class="chip">Waveshare ESP32-H2-Zero</span>
+    <span class="chip">8× WS2812 stick (4–7 VDC)</span>
+    <span class="chip">IKEA MYGGBETT E2492</span>
+  </div>
+</header>
+
+<section class="verdict" aria-labelledby="v-h">
+  <h2 id="v-h">Where this stands</h2>
+  <div class="row"><span>Progress</span><p>The toolchain is installed. The offline lookup, the plan's go/no-go question, <b>passed in simulation</b>. The full S3 firmware (pairing, subscriptions, LEDs and console) is written and builds, and its app logic passes its tests on the build machine. A review against the Matter, OpenThread and ESP-IDF sources then fixed several bugs that would have shown up on the first pairing, and added a startup animation. <b>Nothing has run on the boards yet</b>: the parts order went in on 30 Sep. One 1 kΩ resistor was added to the parts list afterwards.</p></div>
+  <div class="row"><span>Design</span><p>The <b>ESP32-S3-Zero-N8R8</b> (8 MB flash, 8 MB PSRAM) runs the Matter controller: it pairs the sensors, keeps track of them and drives the LEDs. The <b>ESP32-H2-Zero</b> is reflashed as its Thread radio, and the two boards talk over two UART wires. Espressif tests exactly this pairing: an S3 with PSRAM running the controller plus a Thread border router, with an H2 as the radio.</p></div>
+  <div class="row"><span>Sensor</span><p>MYGGBETT uses Matter over Thread only; nobody has found a way to pair it over Zigbee. It pairs over Bluetooth, so the S3 handles that, and after pairing it talks over Thread through the H2.</p></div>
+  <div class="row"><span>Network</span><p>Fully offline, by your choice: no Wi-Fi and no network credentials on the device. The S3 therefore runs the Thread network's lookup service (SRP and DNS-SD) itself. Espressif's example doesn't do this, but an OpenThread simulation shows it works, and Matter points its lookups at the S3's own service without extra code.</p></div>
+  <div class="row"><span>Main risks</span><p>First, two open Espressif bug reports that show other IKEA devices from the same product line failing to pair over Bluetooth. Second, two parts of the offline lookup that only the real S3 can prove. Both are the first tests once the boards arrive.</p></div>
+</section>
+
+<!-- ============ WIRING ============ -->
+<section style="display:grid;gap:20px" aria-labelledby="w-h">
+  <div class="col">
+    <span class="eyebrow">1 · Wiring</span>
+    <h2 id="w-h">Wiring diagram</h2>
+    <p>One 5 V supply feeds both boards and the LED stick through a shared +5 V and GND rail. Each board gets its own Schottky diode, because both boards wire their 5V pin straight to their USB port. The diode keeps a computer's USB port from feeding the rail, but the rail's 5 V still reaches each board's USB-C socket. So connect the S3 to your computer through a USB hub or adapter that stays plugged into the computer (see Safety below). The S3's 3.3 V data line goes through a 5 V buffer to reach the LEDs. The H2 connects to the S3 with two crossed UART wires: each board's TX goes to the other board's RX, and the S3's TX wire has a 1 kΩ resistor at the S3 end.</p>
+  </div>
+
+  <figure>
+    <div class="diagram">
+      <svg viewBox="0 0 1320 780" role="img" aria-label="Wiring: mains to RS-15-5 L, N and FG. RS-15-5 +V and −V form a 5 V rail and a ground rail. The 5 V rail feeds the ESP32-H2-Zero and the ESP32-S3-Zero 5V pins through one 1N5817 diode each, the 74HCT125 VCC and the LED stick. H2 TX goes to S3 GPIO5, and S3 GPIO6 goes through a 1 kΩ resistor to H2 RX. S3 GPIO13 goes to 74HCT125 input 1A with a 10 kΩ pull-down; output 1Y goes through 330 Ω to the stick's DIN. A 1000 µF capacitor sits across the rails at the stick.">
+        <g font-size="12" fill="currentColor">
+
+        <!-- ===== Rails ===== -->
+        <polyline points="290,160 290,200 1240,200" fill="none" stroke="var(--w5v)" stroke-width="3"/>
+        <polyline points="240,160 240,740 1240,740" fill="none" stroke="var(--wgnd)" stroke-width="3"/>
+        <text x="400" y="190" fill="var(--w5v)" font-weight="500">+5 V rail</text>
+        <text x="400" y="762" fill="var(--wgnd)" font-weight="500">GND rail (common ground)</text>
+
+        <!-- ===== PSU ===== -->
+        <rect x="30" y="30" width="340" height="100" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
+        <text x="48" y="60" font-family="var(--f-display)" font-size="16" font-weight="600">MEAN WELL RS-15-5</text>
+        <text x="48" y="82" fill="var(--muted)">85–264 VAC in · 5 V / 3 A out</text>
+        <text x="48" y="100" fill="var(--muted)">leave pot at 5.0 V</text>
+        <g font-size="11" text-anchor="middle">
+          <rect x="53" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="70" y="149">L</text>
+          <rect x="103" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="120" y="149">N</text>
+          <rect x="153" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="170" y="149">FG⏚</text>
+          <rect x="223" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="240" y="149">−V</text>
+          <rect x="273" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="290" y="149">+V</text>
+          <circle cx="340" cy="145" r="10" fill="var(--surface)" stroke="currentColor"/><line x1="334" y1="151" x2="346" y2="139" stroke="currentColor"/>
+          <text x="70" y="124" fill="var(--muted)" font-size="10">1</text>
+          <text x="120" y="124" fill="var(--muted)" font-size="10">2</text>
+          <text x="170" y="124" fill="var(--muted)" font-size="10">3</text>
+          <text x="240" y="124" fill="var(--muted)" font-size="10">4</text>
+          <text x="290" y="124" fill="var(--muted)" font-size="10">5</text>
+          <text x="340" y="124" fill="var(--muted)" font-size="10">ADJ</text>
+        </g>
+
+        <!-- ===== Mains ===== -->
+        <line x1="70" y1="160" x2="70" y2="250" stroke="var(--wL)" stroke-width="3"/>
+        <line x1="120" y1="160" x2="120" y2="250" stroke="var(--wN)" stroke-width="3"/>
+        <line x1="170" y1="160" x2="170" y2="250" stroke="var(--wPE)" stroke-width="3"/>
+        <line x1="170" y1="160" x2="170" y2="250" stroke="var(--lit)" stroke-width="3" stroke-dasharray="6 6" opacity="0.8"/>
+        <rect x="30" y="250" width="180" height="70" rx="4" fill="var(--high-soft)" stroke="var(--high)" stroke-width="1.5"/>
+        <g font-size="11" text-anchor="middle">
+          <text x="70" y="270">L</text><text x="120" y="270">N</text><text x="170" y="270">PE</text>
+        </g>
+        <text x="120" y="292" text-anchor="middle" font-weight="600" fill="var(--high)">230 V AC mains</text>
+        <text x="120" y="309" text-anchor="middle" font-size="11" fill="var(--high)">via fused switch</text>
+        <text x="30" y="372" font-size="11" fill="var(--muted)">earth (FG) is required</text>
+        <text x="30" y="388" font-size="11" fill="var(--muted)">M3 screws, 0.6–0.8 N·m</text>
+        <text x="30" y="404" font-size="11" fill="var(--muted)">≥ 0.75 mm² / AWG18</text>
+
+        <!-- ===== H2 5V feed with 1N5817 ===== -->
+        <circle cx="300" cy="200" r="4.5" fill="var(--w5v)"/>
+        <line x1="300" y1="200" x2="300" y2="250" stroke="var(--w5v)" stroke-width="3"/>
+        <polygon points="290,250 310,250 300,266" fill="var(--w5v)"/>
+        <line x1="289" y1="268" x2="311" y2="268" stroke="var(--w5v)" stroke-width="2.5"/>
+        <polyline points="300,268 300,430 330,430" fill="none" stroke="var(--w5v)" stroke-width="3"/>
+        <text x="318" y="258" font-size="11" font-weight="600">1N5817</text>
+        <text x="318" y="272" font-size="10" fill="var(--muted)">Schottky</text>
+
+        <!-- H2 GND -->
+        <polyline points="330,458 240,458" fill="none" stroke="var(--wgnd)" stroke-width="3"/>
+        <circle cx="240" cy="458" r="4.5" fill="var(--wgnd)"/>
+
+        <!-- ===== S3 5V feed with 1N5817 ===== -->
+        <circle cx="600" cy="200" r="4.5" fill="var(--w5v)"/>
+        <line x1="600" y1="200" x2="600" y2="228" stroke="var(--w5v)" stroke-width="3"/>
+        <polygon points="590,228 610,228 600,244" fill="var(--w5v)"/>
+        <line x1="589" y1="246" x2="611" y2="246" stroke="var(--w5v)" stroke-width="2.5"/>
+        <polyline points="600,246 600,280 640,280" fill="none" stroke="var(--w5v)" stroke-width="3"/>
+        <text x="584" y="236" font-size="11" text-anchor="end" font-weight="600">1N5817</text>
+        <text x="584" y="251" font-size="10" text-anchor="end" fill="var(--muted)">Schottky</text>
+
+        <!-- S3 GND: hops over the H2 5V feed -->
+        <path d="M640 308 L620 308 L620 345 L306 345 A6 6 0 0 0 294 345 L240 345" fill="none" stroke="var(--wgnd)" stroke-width="3"/>
+        <circle cx="240" cy="345" r="4.5" fill="var(--wgnd)"/>
+
+        <!-- ===== ESP32-H2-Zero (radio) ===== -->
+        <rect x="390" y="388" width="60" height="16" rx="4" fill="var(--surface)" stroke="currentColor"/>
+        <text x="420" y="380" text-anchor="middle" font-size="11" fill="var(--muted)">USB-C (flashing)</text>
+        <rect x="330" y="402" width="180" height="290" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="420" y="540" text-anchor="middle" font-family="var(--f-display)" font-size="15" font-weight="600">ESP32-H2-Zero</text>
+        <text x="420" y="558" text-anchor="middle" font-size="11" fill="var(--muted)">Thread radio (RCP)</text>
+        <text x="420" y="682" text-anchor="middle" font-size="10" fill="var(--muted)">antenna end</text>
+        <g font-size="11">
+          <g text-anchor="start">
+            <text x="340" y="434" font-weight="600">5V</text>
+            <text x="340" y="462" font-weight="600">GND</text>
+            <text x="340" y="490" fill="var(--muted)">3V3</text>
+            <text x="340" y="518" fill="var(--muted)">0</text>
+            <text x="340" y="546" fill="var(--muted)">1</text>
+            <text x="340" y="574" fill="var(--muted)">2</text>
+            <text x="340" y="602" fill="var(--muted)">3</text>
+            <text x="340" y="630" fill="var(--muted)">4</text>
+            <text x="340" y="658" fill="var(--muted)">5</text>
+          </g>
+          <g text-anchor="end">
+            <text x="500" y="434" font-weight="600">TX</text>
+            <text x="500" y="462" font-weight="600">RX</text>
+            <text x="500" y="490" fill="var(--muted)">25</text>
+            <text x="500" y="518" fill="var(--muted)">22</text>
+            <text x="500" y="546" fill="var(--muted)">14</text>
+            <text x="500" y="574" fill="var(--muted)">13</text>
+            <text x="500" y="602" fill="var(--muted)">12</text>
+            <text x="500" y="630" fill="var(--muted)">11</text>
+            <text x="500" y="658" fill="var(--muted)">10</text>
+          </g>
+          <g fill="var(--surface)" stroke="currentColor">
+            <circle cx="330" cy="430" r="4"/><circle cx="330" cy="458" r="4"/><circle cx="330" cy="486" r="4"/><circle cx="330" cy="514" r="4"/><circle cx="330" cy="542" r="4"/><circle cx="330" cy="570" r="4"/><circle cx="330" cy="598" r="4"/><circle cx="330" cy="626" r="4"/><circle cx="330" cy="654" r="4"/>
+            <circle cx="510" cy="430" r="4"/><circle cx="510" cy="458" r="4"/><circle cx="510" cy="486" r="4"/><circle cx="510" cy="514" r="4"/><circle cx="510" cy="542" r="4"/><circle cx="510" cy="570" r="4"/><circle cx="510" cy="598" r="4"/><circle cx="510" cy="626" r="4"/><circle cx="510" cy="654" r="4"/>
+          </g>
+        </g>
+
+        <!-- ===== UART between boards ===== -->
+        <polyline points="510,430 560,430 560,476 640,476" fill="none" stroke="var(--wuart)" stroke-width="3"/>
+        <polyline points="640,504 622,504" fill="none" stroke="var(--wuart)" stroke-width="3"/>
+        <rect x="592" y="498" width="30" height="12" fill="var(--surface)" stroke="currentColor" stroke-width="1.5"/>
+        <text x="607" y="492" text-anchor="middle" font-size="10" font-weight="600">1 kΩ</text>
+        <polyline points="592,504 540,504 540,458 510,458" fill="none" stroke="var(--wuart)" stroke-width="3" stroke-dasharray="8 4"/>
+        <text x="516" y="421" font-size="10" fill="var(--wuart)" font-weight="600">H2 TX → S3 RX</text>
+        <text x="546" y="522" font-size="10" fill="var(--wuart)" font-weight="600">S3 TX → H2 RX</text>
+
+        <!-- ===== ESP32-S3-Zero-N8R8 ===== -->
+        <rect x="700" y="238" width="60" height="16" rx="4" fill="var(--surface)" stroke="currentColor"/>
+        <text x="730" y="230" text-anchor="middle" font-size="11" fill="var(--muted)">USB-C → computer (console)</text>
+        <rect x="640" y="252" width="180" height="290" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="730" y="382" text-anchor="middle" font-family="var(--f-display)" font-size="15" font-weight="600">ESP32-S3-Zero</text>
+        <text x="730" y="399" text-anchor="middle" font-size="11" fill="var(--muted)">N8R8 · Matter controller</text>
+        <text x="730" y="426" text-anchor="middle" font-size="10" fill="var(--muted)">onboard RGB = GPIO21</text>
+        <text x="730" y="441" text-anchor="middle" font-size="10" fill="var(--muted)">BOOT = GPIO0</text>
+        <text x="730" y="532" text-anchor="middle" font-size="10" fill="var(--muted)">antenna end</text>
+        <g font-size="11">
+          <g text-anchor="start">
+            <text x="650" y="284" font-weight="600">5V</text>
+            <text x="650" y="312" font-weight="600">GND</text>
+            <text x="650" y="340" fill="var(--muted)">3V3</text>
+            <text x="650" y="368" fill="var(--muted)">1</text>
+            <text x="650" y="396" fill="var(--muted)">2</text>
+            <text x="650" y="424" fill="var(--muted)">3</text>
+            <text x="650" y="452" fill="var(--muted)">4</text>
+            <text x="650" y="480" font-weight="600">5</text>
+            <text x="650" y="508" font-weight="600">6</text>
+          </g>
+          <g text-anchor="end">
+            <text x="810" y="284" fill="var(--muted)">TX</text>
+            <text x="810" y="312" fill="var(--muted)">RX</text>
+            <text x="810" y="340" font-weight="600">13</text>
+            <text x="810" y="368" fill="var(--muted)">12</text>
+            <text x="810" y="396" fill="var(--muted)">11</text>
+            <text x="810" y="424" fill="var(--muted)">10</text>
+            <text x="810" y="452" fill="var(--muted)">9</text>
+            <text x="810" y="480" fill="var(--muted)">8</text>
+            <text x="810" y="508" fill="var(--muted)">7</text>
+          </g>
+          <g fill="var(--surface)" stroke="currentColor">
+            <circle cx="640" cy="280" r="4"/><circle cx="640" cy="308" r="4"/><circle cx="640" cy="336" r="4"/><circle cx="640" cy="364" r="4"/><circle cx="640" cy="392" r="4"/><circle cx="640" cy="420" r="4"/><circle cx="640" cy="448" r="4"/><circle cx="640" cy="476" r="4"/><circle cx="640" cy="504" r="4"/>
+            <circle cx="820" cy="280" r="4"/><circle cx="820" cy="308" r="4"/><circle cx="820" cy="336" r="4"/><circle cx="820" cy="364" r="4"/><circle cx="820" cy="392" r="4"/><circle cx="820" cy="420" r="4"/><circle cx="820" cy="448" r="4"/><circle cx="820" cy="476" r="4"/><circle cx="820" cy="504" r="4"/>
+          </g>
+        </g>
+
+        <!-- ===== GPIO13 → 1A, with pull-down ===== -->
+        <line x1="820" y1="336" x2="900" y2="336" stroke="var(--wdata)" stroke-width="3"/>
+        <text x="826" y="326" font-size="10" fill="var(--wdata)" font-weight="600">3.3 V data</text>
+        <circle cx="860" cy="336" r="4.5" fill="var(--wdata)"/>
+        <line x1="860" y1="336" x2="860" y2="470" stroke="var(--wdata)" stroke-width="2"/>
+        <rect x="854" y="470" width="12" height="36" fill="var(--surface)" stroke="currentColor" stroke-width="1.5"/>
+        <line x1="860" y1="506" x2="860" y2="740" stroke="var(--wgnd)" stroke-width="2"/>
+        <text x="872" y="486" font-size="11">10 kΩ</text>
+        <text x="872" y="500" font-size="10" fill="var(--muted)">pull-down</text>
+        <circle cx="860" cy="740" r="4.5" fill="var(--wgnd)"/>
+
+        <!-- ===== 74HCT125 ===== -->
+        <rect x="900" y="290" width="120" height="110" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
+        <g font-size="11">
+          <text x="908" y="340">1A</text>
+          <text x="1014" y="340" text-anchor="end">1Y</text>
+          <text x="960" y="308" text-anchor="middle">VCC</text>
+          <text x="935" y="392" text-anchor="middle">GND</text>
+          <text x="985" y="392" text-anchor="middle">1OE</text>
+          <line x1="975" y1="380" x2="995" y2="380" stroke="currentColor"/>
+        </g>
+        <text x="960" y="360" text-anchor="middle" font-family="var(--f-display)" font-size="14" font-weight="600">74HCT125</text>
+        <text x="960" y="375" text-anchor="middle" font-size="10" fill="var(--muted)">gate 1, 5 V</text>
+        <line x1="960" y1="200" x2="960" y2="290" stroke="var(--w5v)" stroke-width="2.5"/>
+        <circle cx="960" cy="200" r="4.5" fill="var(--w5v)"/>
+        <line x1="935" y1="400" x2="935" y2="740" stroke="var(--wgnd)" stroke-width="2.5"/>
+        <polyline points="985,400 985,422 935,422" fill="none" stroke="var(--wgnd)" stroke-width="2"/>
+        <circle cx="935" cy="422" r="4" fill="var(--wgnd)"/>
+        <circle cx="935" cy="740" r="4.5" fill="var(--wgnd)"/>
+
+        <!-- ===== 1Y → 330Ω → DIN ===== -->
+        <line x1="1020" y1="336" x2="1035" y2="336" stroke="var(--wdata)" stroke-width="3"/>
+        <rect x="1035" y="330" width="40" height="12" fill="var(--surface)" stroke="currentColor" stroke-width="1.5"/>
+        <line x1="1075" y1="336" x2="1110" y2="336" stroke="var(--wdata)" stroke-width="3"/>
+        <text x="1055" y="322" text-anchor="middle" font-size="11">330 Ω</text>
+        <text x="1055" y="360" text-anchor="middle" font-size="10" fill="var(--wdata)" font-weight="600">5 V data</text>
+
+        <!-- ===== LED stick ===== -->
+        <polyline points="1095,200 1095,280 1110,280" fill="none" stroke="var(--w5v)" stroke-width="3"/>
+        <circle cx="1095" cy="200" r="4.5" fill="var(--w5v)"/>
+        <polyline points="1095,740 1095,500 1110,500" fill="none" stroke="var(--wgnd)" stroke-width="3"/>
+        <circle cx="1095" cy="740" r="4.5" fill="var(--wgnd)"/>
+        <text x="1155" y="238" text-anchor="middle" font-family="var(--f-display)" font-size="14" font-weight="600">8× WS2812</text>
+        <rect x="1110" y="250" width="90" height="290" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
+        <g font-size="10">
+          <text x="1116" y="284">4-7VDC</text>
+          <text x="1116" y="340" font-weight="600">DIN</text>
+          <text x="1116" y="504">GND</text>
+        </g>
+        <g stroke="currentColor" stroke-width="1.2">
+          <circle cx="1180" cy="280" r="9" fill="var(--lit)" stroke="var(--lit)"/>
+          <circle cx="1180" cy="310" r="9" fill="var(--surface)"/>
+          <circle cx="1180" cy="340" r="9" fill="var(--surface)"/>
+          <circle cx="1180" cy="370" r="9" fill="var(--surface)"/>
+          <circle cx="1180" cy="400" r="9" fill="var(--surface)"/>
+          <circle cx="1180" cy="430" r="9" fill="var(--surface)"/>
+          <circle cx="1180" cy="460" r="9" fill="var(--surface)"/>
+          <circle cx="1180" cy="490" r="9" fill="var(--surface)"/>
+        </g>
+        <g font-size="9" text-anchor="middle" fill="currentColor">
+          <text x="1180" y="283" fill="#1a1d1b">1</text><text x="1180" y="313">2</text><text x="1180" y="343">3</text><text x="1180" y="373">4</text><text x="1180" y="403">5</text><text x="1180" y="433">6</text><text x="1180" y="463">7</text><text x="1180" y="493">8</text>
+        </g>
+        <text x="1155" y="558" text-anchor="middle" font-size="10" fill="var(--muted)">DOUT end unused</text>
+
+        <!-- ===== Bulk cap ===== -->
+        <line x1="1240" y1="200" x2="1240" y2="462" stroke="var(--w5v)" stroke-width="2.5"/>
+        <line x1="1224" y1="462" x2="1256" y2="462" stroke="currentColor" stroke-width="3"/>
+        <path d="M1224 478 Q1240 468 1256 478" fill="none" stroke="currentColor" stroke-width="3"/>
+        <line x1="1240" y1="474" x2="1240" y2="740" stroke="var(--wgnd)" stroke-width="2.5"/>
+        <text x="1228" y="454" font-size="12" text-anchor="end">+</text>
+        <text x="1262" y="460" font-size="11">1000 µF</text>
+        <text x="1262" y="475" font-size="10" fill="var(--muted)">≥ 10 V</text>
+        <circle cx="1240" cy="200" r="4.5" fill="var(--w5v)"/>
+        <circle cx="1240" cy="740" r="4.5" fill="var(--wgnd)"/>
+        </g>
+      </svg>
+    </div>
+    <div class="legend" aria-hidden="true">
+      <span><i style="background:var(--w5v)"></i>+5 V</span>
+      <span><i style="background:var(--wgnd)"></i>GND</span>
+      <span><i style="background:var(--wuart)"></i>UART (solid H2→S3, dashed S3→H2)</span>
+      <span><i style="background:var(--wdata)"></i>LED data</span>
+      <span><i style="background:var(--wL)"></i>Live</span>
+      <span><i style="background:var(--wN)"></i>Neutral</span>
+      <span><i style="background:repeating-linear-gradient(90deg,var(--wPE) 0 6px,var(--lit) 6px 12px)"></i>Protective earth</span>
+    </div>
+    <figcaption>Both boards are drawn from the top with the USB-C end up, so the pin positions match the real boards. The S3's GND wire hops over the H2's 5 V feed; the two wires are not connected. The 1 kΩ resistor in the S3 → H2 wire sits right at the S3's pin 6. LED 1, the pixel nearest DIN, is shown lit as an example of sensor 1 reporting open. Add a 100 nF ceramic capacitor between the 74HCT125's VCC (pin 14) and GND (pin 7), right at the chip.</figcaption>
+  </figure>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>From</th><th>To</th><th>Wire</th><th>Why / notes</th></tr></thead>
+      <tbody>
+        <tr><td>Mains L</td><td>RS-15-5 terminal 1 · AC/L</td><td class="w"><span class="sw" style="background:var(--wL)"></span>brown</td><td>Through a fused switch or breaker</td></tr>
+        <tr><td>Mains N</td><td>RS-15-5 terminal 2 · AC/N</td><td class="w"><span class="sw" style="background:var(--wN)"></span>blue</td><td></td></tr>
+        <tr><td>Mains PE</td><td>RS-15-5 terminal 3 · FG ⏚</td><td class="w"><span class="sw" style="background:var(--wPE)"></span>green-yellow</td><td>Required: Mean Well says FG must be connected to earth. The HDR-15-5 in the parts list is Class II and has no FG terminal, so it needs no earth wire.</td></tr>
+        <tr><td>RS-15-5 terminal 5 · +V</td><td>+5 V rail</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red</td><td>Factory setting is 5.0 V; leave it there. The pot goes 4.75–5.5 V (4.5–5.5 V on the HDR-15-5), all within the stick's 4–7 V rating</td></tr>
+        <tr><td>RS-15-5 terminal 4 · −V</td><td>GND rail</td><td class="w"><span class="sw" style="background:var(--wgnd)"></span>black</td><td>Ground shared by every part</td></tr>
+        <tr><td>+5 V rail</td><td>1N5817 anode → cathode → S3-Zero <b>5V</b> (left pin 1)</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red</td><td>The S3-Zero's 5V pin is wired straight to USB VBUS, per Waveshare's schematic. The diode stops your computer's USB port from feeding the rail. It doesn't stop the rail's ~4.7 V from reaching the S3's USB-C socket, which is why the console cable goes through a hub or adapter.</td></tr>
+        <tr><td>GND rail</td><td>S3-Zero <b>GND</b> (left pin 2)</td><td class="w"><span class="sw" style="background:var(--wgnd)"></span>black</td><td></td></tr>
+        <tr><td>+5 V rail</td><td>1N5817 anode → cathode → H2-Zero <b>5V</b> (left pin 1)</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red</td><td>A separate diode, so the two boards' USB ports never get connected to each other</td></tr>
+        <tr><td>GND rail</td><td>H2-Zero <b>GND</b> (left pin 2)</td><td class="w"><span class="sw" style="background:var(--wgnd)"></span>black</td><td>Both boards must share ground for the UART link to work</td></tr>
+        <tr><td>H2-Zero <b>TX</b> (right pin 1, GPIO24)</td><td>S3-Zero <b>5</b> (left pin 8, GPIO5 = UART1 RX)</td><td class="w"><span class="sw" style="background:var(--wuart)"></span>UART</td><td>Thread radio link between the boards, at 460 800 baud (the default for both <code>ot_rcp</code> and the controller). The H2-Zero already has a 499 Ω resistor in series on its TX pin.</td></tr>
+        <tr><td>S3-Zero <b>6</b> (left pin 9, GPIO6 = UART1 TX)</td><td>1 kΩ → H2-Zero <b>RX</b> (right pin 2, GPIO23)</td><td class="w"><span class="sw" style="background:var(--wuart)"></span>UART</td><td>Put the resistor at the S3 end. When only the S3 is powered (on USB with the supply off), its TX idles high and would otherwise power the H2 through the H2's input protection; 1 kΩ limits that and is harmless at 460 800 baud. Espressif's example uses GPIO17/18, which are pads under the S3-Zero. Header pins 5 and 6 are easier to solder, and the firmware already uses them.</td></tr>
+        <tr><td>+5 V rail</td><td>74HCT125 pin 14 · VCC</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red</td><td>Plus 100 nF to GND at the chip</td></tr>
+        <tr><td>GND rail</td><td>74HCT125 pin 7 · GND, and pin 1 · 1OE</td><td class="w"><span class="sw" style="background:var(--wgnd)"></span>black</td><td>1OE low turns the buffer on permanently</td></tr>
+        <tr><td>S3-Zero <b>13</b> (right pin 3, GPIO13)</td><td>74HCT125 pin 2 · 1A</td><td class="w"><span class="sw" style="background:var(--wdata)"></span>data</td><td>GPIO13 has no boot, USB or UART role, so it won't glitch the LEDs at power-on. A 10 kΩ resistor to GND holds the line low while the chip boots.</td></tr>
+        <tr><td>74HCT125 pin 3 · 1Y</td><td>330 Ω → stick <b>DIN</b></td><td class="w"><span class="sw" style="background:var(--wdata)"></span>data</td><td>Put the resistor at the stick end and keep the wire short</td></tr>
+        <tr><td>74HCT125 pins 4, 5, 9, 10, 12, 13</td><td>GND</td><td class="w"><span class="sw" style="background:var(--wgnd)"></span>black</td><td>Unused gates: tie their inputs and OE pins low, and leave outputs 6, 8 and 11 unconnected</td></tr>
+        <tr><td>+5 V rail / GND rail</td><td>Stick <b>4-7VDC</b> / <b>GND</b></td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red / black</td><td>Worst case is 8 × 60 mA = 480 mA. The firmware also caps brightness.</td></tr>
+        <tr><td>1000 µF electrolytic</td><td>Across the stick's 4-7VDC (+) and GND</td><td class="w">—</td><td>Smooths current spikes when the LEDs switch</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col" id="bom">
+    <h3>Parts list (Electrokit)</h3>
+    <p>Every electronic component needed to build this from scratch. The MYGGBETT sensors come from IKEA, and the mechanical parts are listed under “Not in the list”. Paste the list into <a href="https://www.electrokit.com/en/quickorder">Electrokit's quick order form</a>, or import <code>bom.csv</code> from the project folder. Prices are Electrokit's list prices excluding VAT on 30 Sep 2026, and every item was in stock that day. The first seven lines are the order placed on 30 Sep (108.32 SEK). The next three replace parts you already had. The last line, the 1 kΩ UART resistor, was added after the order and is still to buy. Electrokit doesn't sell the RS-15-5, so the list uses the Mean Well HDR-15-5, which is wired the same way. The 74AHCT125N was out of stock, so the list uses the 74HCT125N instead. It has the same pinout and also reads 3.3 V as high when powered from 5 V. Don't substitute a plain 74HC125, which needs about 3.5 V.</p>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Article no.</th><th>Part</th><th>Qty</th><th>For</th><th style="text-align:right">SEK ex VAT</th></tr></thead>
+      <tbody class="mono-nums">
+        <tr class="grp"><td colspan="5">Ordered 30 Sep 2026</td></tr>
+        <tr><td class="mono">41036435</td><td>ESP32-S3 dev board mini 8MB + PSRAM 8MB (Waveshare ESP32-S3-Zero-N8R8)</td><td>1</td><td>Matter controller</td><td style="text-align:right">95.20</td></tr>
+        <tr><td class="mono">40380125</td><td>74HCT125N DIP-14 quad bus buffer (TI CD74HCT125E)</td><td>1</td><td>3.3 V → 5 V LED data</td><td style="text-align:right">3.04</td></tr>
+        <tr><td class="mono">40315817</td><td>1N5817 Schottky diode, DO-41, 20 V 1 A</td><td>2</td><td>One per board's 5V pin</td><td style="text-align:right">2.00</td></tr>
+        <tr><td class="mono">40811233</td><td>Resistor metal film 0.6 W 1% 330 Ω</td><td>1</td><td>In series with LED data</td><td style="text-align:right">0.80</td></tr>
+        <tr><td class="mono">40811410</td><td>Resistor metal film 0.6 W 1% 10 kΩ</td><td>1</td><td>Pull-down on GPIO13</td><td style="text-align:right">0.80</td></tr>
+        <tr><td class="mono">41017694</td><td>Electrolytic capacitor 1000 µF 16 V 105 °C, 10×16 mm</td><td>1</td><td>Across the LED stick's power</td><td style="text-align:right">3.60</td></tr>
+        <tr><td class="mono">41015538</td><td>Ceramic MLCC 100 nF 50 V X7R, 5 mm</td><td>1</td><td>Decoupling at the 74HCT125</td><td style="text-align:right">2.88</td></tr>
+        <tr class="grp"><td colspan="5">Already owned · Electrokit parts for a build from scratch</td></tr>
+        <tr><td class="mono">41032818</td><td>ESP32-H2 mini development board 4MB BLE/Zigbee/Thread (Waveshare ESP32-H2-Zero, no headers)</td><td>1</td><td>Thread radio</td><td style="text-align:right">63.20</td></tr>
+        <tr><td class="mono">41012479</td><td>NeoPixel stick 8 RGB LEDs 51mm (Adafruit 1426)</td><td>1</td><td>The 8 window LEDs</td><td style="text-align:right">71.20</td></tr>
+        <tr><td class="mono">41021466</td><td>Mean Well HDR-15-5 power supply 5 V 2.4 A, DIN rail</td><td>1</td><td>5 V supply, instead of the RS-15-5</td><td style="text-align:right">132.00</td></tr>
+        <tr class="grp"><td colspan="5">Added after the order · still to buy</td></tr>
+        <tr><td class="mono">40811310</td><td>Resistor metal film 0.6 W 1% 1 kΩ</td><td>1</td><td>In series with S3 TX → H2 RX</td><td style="text-align:right">0.80</td></tr>
+        <tr><td></td><td><b>Total</b></td><td>12</td><td></td><td style="text-align:right"><b>375.52</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="csv">
+    <div class="csv-head"><span class="eyebrow">bom.csv · sku; qty</span><button type="button" id="copy-bom">Copy</button></div>
+<pre id="bom-csv">41036435; 1
+40380125; 1
+40315817; 2
+40811233; 1
+40811410; 1
+41017694; 1
+41015538; 1
+41032818; 1
+41012479; 1
+41021466; 1
+40811310; 1</pre>
+  </div>
+  <script>
+    (function () {
+      var btn = document.getElementById('copy-bom');
+      var pre = document.getElementById('bom-csv');
+      btn.addEventListener('click', function () {
+        function selectIt() { var r = document.createRange(); r.selectNodeContents(pre); var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r); btn.textContent = 'Selected: press Ctrl/Cmd+C'; }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(pre.textContent + '\n').then(function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1800); }, selectIt);
+        } else { selectIt(); }
+      });
+    })();
+  </script>
+  <div class="facts" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+    <div class="fact">
+      <h3>Not in the list</h3>
+      <ul>
+        <li>The MYGGBETT sensors, from IKEA</li>
+        <li>Fused switch or breaker, mains lead, and an enclosure for the supply. These depend on how you install it.</li>
+        <li>Pin headers: both boards come without them</li>
+        <li>Hook-up wire, terminal blocks for the rails, and something to build on, such as perfboard, plus an optional DIP-14 socket for the 74HCT125</li>
+      </ul>
+    </div>
+    <div class="fact">
+      <h3>Alternatives</h3>
+      <ul>
+        <li><b>No mains wiring:</b> a plug-in 5 V 2.4 A adapter (41019070, 79.20) and a panel DC jack (41015531, 22.40) replace the HDR-15-5. The jack's centre pin goes to the +5 V rail and its sleeve to GND. This is the simplest and safest option if the supply doesn't need to be built in.</li>
+        <li><b>Not recommended:</b> the Mean Well EPS-15-5 (41037509, 78.48) is an open-frame board with bare mains connections, and only 3 were in stock.</li>
+        <li><b>Cheaper LEDs:</b> a generic 8-LED WS2812 stick (41016857, 31.20) is wired the same way (5 V, GND, data in). It isn't branded, and its pad labels may differ from the diagram.</li>
+        <li>Any of these supplies is enough: the whole build draws about 1 A at most.</li>
+      </ul>
+    </div>
+    <div class="fact">
+      <h3>Safety and order of work</h3>
+      <ul>
+        <li>The RS-15-5 is built to go inside an enclosure: its mains terminals are exposed. The HDR-15-5's terminals are covered, but the same rule applies to both: keep the supply unplugged whenever you wire it. If you aren't comfortable wiring mains, have an electrician connect the mains side.</li>
+        <li>Connect GND first, then +5 V, then the signal wires. Disconnect in reverse order.</li>
+        <li>With the supply on, each board's USB-C socket already has about 4.7 V on it, and a computer's USB-C port may refuse to connect to a socket that is already powered. Connect the S3 through something that stays plugged into the computer, such as a USB hub, a dock, or a USB-C to USB-A adapter with an A-to-C cable, and plug and unplug only at the board end. Then the order doesn't matter. With a direct C-to-C cable, plug it in before switching the supply on.</li>
+        <li>Each diode drops about 0.3 V. The ~4.7 V left is fine for both boards, so leave the supply at 5.0 V.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section style="display:grid;gap:20px" aria-labelledby="a-h">
+  <div class="col">
+    <span class="eyebrow">2 · Architecture</span>
+    <h2 id="a-h">How the boards talk to the sensors</h2>
+    <p>MYGGBETT pairs over Bluetooth, then lives on a Thread network as a battery device that sleeps between check-ins. The S3 does the thinking: it pairs sensors over its own Bluetooth radio, runs the Thread network and its lookup service, and stays subscribed to each sensor's open/closed state. The H2 only carries Thread traffic, using the RCP (radio co-processor) firmware Espressif provides. The two boards have separate radios, so pairing a new sensor doesn't interrupt the ones already paired.</p>
+  </div>
+  <figure>
+    <div class="diagram">
+      <svg viewBox="0 0 1040 320" role="img" aria-label="MYGGBETT sensors pair with the ESP32-S3 over Bluetooth, then report over Thread through the ESP32-H2 radio, which talks to the S3 over UART. A computer sends pair, list and remove commands to the S3 over USB serial. Inside the S3: Matter controller, OpenThread leader with SRP and DNS-SD servers, slot table in NVS, and led_strip driver on GPIO13 feeding the LED stick.">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
+          <marker id="ahA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker>
+          <marker id="ahU" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--wuart)"/></marker>
+          <marker id="ahD" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--wdata)"/></marker>
+        </defs>
+        <g font-size="12" fill="currentColor">
+          <rect x="20" y="30" width="170" height="140" rx="6" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
+          <text x="105" y="60" text-anchor="middle" font-family="var(--f-display)" font-size="15" font-weight="600">MYGGBETT × up to 8</text>
+          <text x="105" y="82" text-anchor="middle" font-size="11" fill="var(--muted)">battery-powered, sleeps</text>
+          <text x="105" y="97" text-anchor="middle" font-size="11" fill="var(--muted)">between check-ins</text>
+          <text x="105" y="122" text-anchor="middle" font-size="11" fill="var(--muted)">endpoint 1 · BooleanState</text>
+          <text x="105" y="138" text-anchor="middle" font-size="11" fill="var(--muted)">true = closed</text>
+
+          <rect x="20" y="240" width="170" height="70" rx="6" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
+          <text x="105" y="268" text-anchor="middle" font-family="var(--f-display)" font-size="15" font-weight="600">Computer</text>
+          <text x="105" y="288" text-anchor="middle" font-size="11" fill="var(--muted)">USB serial console</text>
+
+          <rect x="250" y="120" width="160" height="90" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="330" y="150" text-anchor="middle" font-family="var(--f-display)" font-size="14" font-weight="600">ESP32-H2-Zero</text>
+          <text x="330" y="170" text-anchor="middle" font-size="11" fill="var(--muted)">Thread radio (RCP)</text>
+          <text x="330" y="188" text-anchor="middle" font-size="11" fill="var(--muted)">802.15.4</text>
+
+          <line x1="190" y1="60" x2="468" y2="60" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+          <text x="330" y="52" text-anchor="middle" font-size="11">Bluetooth · pairing only</text>
+          <line x1="190" y1="160" x2="248" y2="160" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#ahA)" marker-start="url(#ahA)"/>
+          <text x="219" y="150" text-anchor="middle" font-size="11" fill="var(--accent)">Thread</text>
+          <line x1="410" y1="165" x2="468" y2="165" stroke="var(--wuart)" stroke-width="2.5" marker-end="url(#ahU)" marker-start="url(#ahU)"/>
+          <text x="439" y="155" text-anchor="middle" font-size="11" fill="var(--wuart)">UART</text>
+          <line x1="190" y1="275" x2="468" y2="275" stroke="currentColor" stroke-width="1.5" marker-end="url(#ah)"/>
+          <text x="330" y="267" text-anchor="middle" font-size="11">pair · list · remove</text>
+
+          <rect x="470" y="10" width="360" height="290" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="490" y="36" font-family="var(--f-display)" font-size="15" font-weight="600">ESP32-S3-Zero-N8R8 firmware</text>
+          <g font-size="11">
+            <rect x="490" y="50" width="320" height="52" rx="4" fill="var(--surface)" stroke="currentColor"/>
+            <text x="504" y="72" font-weight="600">Matter controller (esp-matter)</text>
+            <text x="504" y="90" fill="var(--muted)">pairs sensors, subscribes to open/closed</text>
+            <rect x="490" y="110" width="320" height="52" rx="4" fill="var(--surface)" stroke="currentColor"/>
+            <text x="504" y="132" font-weight="600">Thread leader + SRP / DNS-SD server</text>
+            <text x="504" y="150" fill="var(--muted)">owns the offline network, lets the S3 look up sensors</text>
+            <rect x="490" y="170" width="320" height="52" rx="4" fill="var(--surface)" stroke="currentColor"/>
+            <text x="504" y="192" font-weight="600">Slot table in flash (NVS)</text>
+            <text x="504" y="210" fill="var(--muted)">slot n ↔ sensor node ID, in pairing order</text>
+            <rect x="490" y="230" width="320" height="52" rx="4" fill="var(--surface)" stroke="currentColor"/>
+            <text x="504" y="252" font-weight="600">LED renderer (led_strip, RMT)</text>
+            <text x="504" y="270" fill="var(--muted)">slot n open → LED n on</text>
+          </g>
+
+          <line x1="830" y1="256" x2="878" y2="256" stroke="var(--wdata)" stroke-width="2.5" marker-end="url(#ahD)"/>
+          <text x="854" y="246" text-anchor="middle" font-size="10">GPIO13</text>
+          <rect x="880" y="220" width="150" height="72" rx="6" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
+          <text x="955" y="248" text-anchor="middle" font-family="var(--f-display)" font-size="15" font-weight="600">LED stick</text>
+          <g stroke="currentColor" stroke-width="1">
+            <circle cx="896" cy="272" r="6" fill="var(--lit)" stroke="var(--lit)"/><circle cx="913" cy="272" r="6" fill="var(--surface)"/><circle cx="930" cy="272" r="6" fill="var(--lit)" stroke="var(--lit)"/><circle cx="947" cy="272" r="6" fill="var(--surface)"/><circle cx="964" cy="272" r="6" fill="var(--surface)"/><circle cx="981" cy="272" r="6" fill="var(--surface)"/><circle cx="998" cy="272" r="6" fill="var(--surface)"/><circle cx="1015" cy="272" r="6" fill="var(--surface)"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <figcaption>The dashed Bluetooth link goes straight to the S3 and is only used while pairing. After that, everything goes over Thread through the H2. In the example on the stick, sensors 1 and 3 are open. There is no Wi-Fi: the whole system is offline.</figcaption>
+  </figure>
+
+  <div class="col">
+    <h3>What happens when you pair a sensor</h3>
+    <ol>
+      <li>You put the sensor in pairing mode (it opens a 15-minute window when you insert the battery or press its button once). Then you type <code>pair 3497-011-2332</code> in the S3's serial console, using the 11-digit code printed on the sensor. The S3 checks the code's check digit, reserves the lowest free slot, and that LED starts pulsing green.</li>
+      <li>The S3 finds the sensor over Bluetooth and opens a secure session using that code.</li>
+      <li>The S3 checks the sensor's certificate against IKEA's root certificate (<i>IKEA of Sweden Matter PAA G1</i>), which is stored on the S3.</li>
+      <li>The S3 hands over the Thread network credentials. The sensor joins the network through the H2 radio and registers its address with the S3's lookup service.</li>
+      <li>The S3 looks the sensor up on Thread through its own lookup service and completes pairing. The slot is saved to flash.</li>
+      <li>The S3 subscribes to the sensor's open/closed state. Every report updates that slot's LED.</li>
+    </ol>
+    <p class="muted" style="font-size:0.92rem">If any step fails, or pairing hasn't finished after 5 minutes, the slot is freed again.</p>
+  </div>
+
+  <div class="col">
+    <h3>LED behaviour</h3>
+    <p class="muted">Confirmed. The exact values below are what the firmware now uses. The last three states were added on 30 Sep.</p>
+  </div>
+  <div class="behav">
+    <div class="state"><span class="px on"></span><span><b>Open</b><br>Warm amber at about 25% brightness (red 64, green 25 of 255)</span></div>
+    <div class="state"><span class="px off"></span><span><b>Closed or empty slot</b><br>Off</span></div>
+    <div class="state"><span class="px pulse"></span><span><b>Pairing into this slot</b><br>Slow green pulse, one breath every 3 s, until pairing succeeds or fails</span></div>
+    <div class="state"><span class="px stale"></span><span><b>Sensor not heard from</b><br>Dim blue blink, 0.3 s every 2 s, after 2 minutes without a working connection</span></div>
+    <div class="state"><span class="px sweep"></span><span><b>Starting up</b><br>A dim white dot sweeps across all 8 LEDs, 1.4 s there and back, until the Thread network and the lookup service are up. Expect about 10–20 s after power-on.</span></div>
+    <div class="state"><span class="px wait"></span><span><b>Waiting for the first report</b><br>Steady dim white on a paired sensor that hasn't reported since boot or since pairing. Usually gone within a few seconds of the network coming up; blue after 2 minutes.</span></div>
+    <div class="state"><span class="px fail"></span><span><b>Thread radio not answering</b><br>All LEDs red for 3 s, then the S3 restarts. Check the UART wires and the H2's firmware.</span></div>
+  </div>
+  <div class="col">
+    <p class="muted" style="font-size:0.92rem">Removing a sensor frees its slot, and the next sensor you pair takes the lowest free slot. The other sensors keep their LEDs. At most 8 sensors, one per LED. Slots are numbered 1–8 on the console, and LED 1 is the end nearest DIN. When a sleepy sensor's connection drops and comes back as part of normal operation, it gets a new 2-minute grace period, so routine reconnects don't flash blue.</p>
+  </div>
+</section>
+
+<!-- ============ RISKS ============ -->
+<section style="display:grid;gap:20px" aria-labelledby="r-h">
+  <div class="col">
+    <span class="eyebrow">3 · Risks</span>
+    <h2 id="r-h">What could stop this</h2>
+    <p>Adding the S3 removes the biggest hardware risks: memory, and Bluetooth and Thread sharing one radio. What's left is mostly software. Updated 30 Sep 2026 after the simulation, the first firmware build and a code review.</p>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Level</th><th>Risk</th><th>Evidence</th><th>How the plan handles it</th></tr></thead>
+      <tbody>
+        <tr><td><span class="sev high">High</span></td><td>IKEA sensors failing to pair over Bluetooth with Espressif's controller</td><td>Two open esp-matter issues (#1772, #1532) report other IKEA devices from the same product line failing with <code>error: ac</code>, one of them on an S3 + H2 board. The same devices pair fine with the Linux reference tool (chip-tool).</td><td><b>Still open.</b> This is the first test in Phase 2, once the S3 arrives. If it reproduces, debug Espressif's Bluetooth settings (this bug happens right after the two sides agree on packet size). <b>Last-resort fallback:</b> during pairing only, the S3 opens a temporary Wi-Fi hotspot so chip-tool on a computer can do the Bluetooth step. The S3 then adds itself as a second controller over the network, and the hotspot closes. This is untested.</td></tr>
+        <tr><td><span class="sev med">Medium</span></td><td>Looking up sensors with no Wi-Fi</td><td>Espressif's controller and border router setup looks devices up through Wi-Fi, and its config turns off the Thread-side lookup clients. Offline, the S3 has to run the lookup service itself.</td><td><b>Passed in simulation</b> (4 runs, 17 of 17 checks, same OpenThread version as the S3): the S3 finds a sleepy sensor through its own lookup service, and sensors re-register within 1–8 s after the S3 reboots. Matter points its lookups at the S3 automatically. <b>Still to prove on the S3:</b> the lookup query to its own address passes through the ESP's IP stack (lwIP) and relies on its loopback, and border router mode must run with Wi-Fi compiled out (it already builds). Fallback unchanged: a small custom resolver that reads the SRP server's table directly.</td></tr>
+        <tr><td><span class="sev low">Resolved</span></td><td>Certificate check needs IKEA's root certificate</td><td>The default trust store holds test certificates only.</td><td>Done. IKEA's root certificate (<i>IKEA of Sweden Matter PAA G1</i>, vendor ID 0x117C, valid until 2099) is in the Matter certificate registry. The firmware bundles it with all 72 production root certificates and leaves Matter's test certificates out.</td></tr>
+        <tr><td><span class="sev med">Medium</span></td><td>The built-in subscription gives up after 2 failed retries</td><td>Hard-coded in esp-matter. Home Assistant users see MYGGBETT subscriptions drop.</td><td><b>Handled in the firmware, untested on hardware.</b> Its own subscriptions on Matter's lower-level API: unlimited retries with backoff (10 s doubling to 5 min), a resubscribe to every sensor once the network is up after boot, keep-alive reports counted as signs of life, and the “not heard from” LED state</td></tr>
+        <tr><td><span class="sev low">Low</span></td><td>Waveshare publishes no schematic for the N8R8 version</td><td>Their schematic is for the standard 4 MB + 2 MB version. Their docs say GPIO33–37 are reserved for octal PSRAM.</td><td>On arrival, run <code>esptool.py flash_id</code> to confirm 8 MB flash and 8 MB PSRAM and whether the PSRAM is octal or quad, then set the matching PSRAM option in the firmware config. The firmware now defaults to octal; switch it to quad if boot reports a PSRAM error.</td></tr>
+        <tr><td><span class="sev low">Low</span></td><td>S3 and H2 firmware must come from the same OpenThread version</td><td>The two boards talk a shared protocol (Spinel) whose versions must match</td><td>Build both from the same ESP-IDF version, and flash the H2 over its own USB whenever ESP-IDF is updated</td></tr>
+        <tr><td><span class="sev low">Low</span></td><td>The sensor doesn't send a “state changed” event</td><td>Its BooleanState cluster doesn't emit StateChange</td><td>Subscribe to the StateValue attribute instead</td></tr>
+        <tr><td><span class="sev low">Resolved</span></td><td>esp-matter misbehaves with Wi-Fi off</td><td>Without Wi-Fi the build fails to link, because ESP-IDF's prebuilt border router library needs mDNS. esp-matter's pairing helper also reports success when pairing can't even start.</td><td>Fixed in the firmware: mDNS is linked but never started, and pairing calls Matter directly with a 5-minute timeout</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+    <h3>Board options compared</h3>
+    <p class="muted">Checked 30 Sep 2026 against Waveshare's schematics, Espressif datasheets, esp-matter CI rules and the open issues.</p>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th></th><th>ESP32-H2-Zero alone</th><th>ESP32-C5-Zero alone</th><th>ESP32-S3-Zero-N8R8 + H2-Zero (chosen)</th></tr></thead>
+      <tbody>
+        <tr><td>Chip / memory</td><td>H2FH4 · 320 KB SRAM · no PSRAM · 4 MB flash</td><td>C5HF4 · 384 KB SRAM · <b>no PSRAM</b> (the chip version on this board can't take it) · 4 MB flash</td><td>S3 · 512 KB SRAM · <b>8 MB PSRAM</b> · 8 MB flash, plus the H2 as radio</td></tr>
+        <tr><td>CPU</td><td>96 MHz, one core</td><td>240 MHz, one core</td><td>240 MHz, two cores</td></tr>
+        <tr><td>Espressif builds and tests the controller on it</td><td><span class="sev high">No</span></td><td><span class="sev high">No</span> (no C5 controller config exists)</td><td><span class="sev low">Yes</span></td></tr>
+        <tr><td>Accepting new Thread devices while Bluetooth runs</td><td><span class="sev med">Untested</span> · Bluetooth scanning + Thread router listed as unsupported</td><td><span class="sev high">Open bug #1851</span> · devices can't join after Bluetooth starts</td><td><span class="sev low">Works</span> · each board has its own radio</td></tr>
+        <tr><td>Looking up sensors</td><td>Custom lookup service on the chip</td><td>Custom, or a Wi-Fi border router Espressif rates unstable on one chip</td><td>Lookup service switched on by hand, since you chose no Wi-Fi. Plenty of RAM for it.</td></tr>
+        <tr><td>IKEA Bluetooth pairing bug (#1772/#1532)</td><td>Applies</td><td>Applies</td><td>Applies</td></tr>
+        <tr><td>Extra cost</td><td>—</td><td>≈ $7</td><td>119 SEK</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ PLAN ============ -->
+<section style="display:grid;gap:20px" aria-labelledby="p-h">
+  <div class="col">
+    <span class="eyebrow">4 · Work plan</span>
+    <h2 id="p-h">Phases and checkpoints</h2>
+    <p>Each phase ends with a checkpoint to pass before the next one starts. Toolchain: <b>ESP-IDF v5.5.5</b> and <b>esp-matter release/v1.6</b> (the latest stable pair), plus <code>espressif/led_strip</code> 3.0.3. The S3 firmware starts from esp-matter's controller example with its border-router config (<code>sdkconfig.defaults.otbr</code>). The H2 runs ESP-IDF's <code>ot_rcp</code> example.</p>
+  </div>
+  <div class="phases">
+    <div class="phase"><span class="n">0</span><div class="body">
+      <h3>Toolchain and hardware check</h3>
+      <p>Install ESP-IDF v5.5.5 and esp-matter v1.6. Confirm the S3's flash and PSRAM with <code>esptool.py flash_id</code>. Flash <code>ot_rcp</code> to the H2 over its USB, configured to talk over the TX/RX pins (UART0) at 460 800 baud, the default on both sides. Wire everything as above. Flash a small test program to the S3 that steps through all 8 LEDs on GPIO13 with a brightness cap.</p>
+      <p class="status"><span class="sev med">Partly done</span><span>ESP-IDF v5.5.5 and esp-matter v1.6 are installed on the build machine. esp-matter's installer needed a one-line fix for Python 3.13. The LED test firmware is built for both boards; until the S3 arrives it can run on the H2 with LED data on GPIO4.</span></p>
+      <p class="gate"><b>Checkpoint</b>All 8 LEDs show the right colours on supply power, with USB plugged in at the same time, and without flicker. The console attaches through a hub whichever of supply and cable goes first. The S3 reports 8 MB of PSRAM.</p>
+    </div></div>
+    <div class="phase"><span class="n">1</span><div class="body">
+      <h3>Offline Thread network and lookup service</h3>
+      <p>Build the controller example with the border-router config, but with Wi-Fi turned off. Point its radio UART at GPIO5/GPIO6, and set the PSRAM mode from Phase 0. Create the Thread network from firmware. Turn the OpenThread SRP and DNS clients back on and start the SRP and DNS-SD servers by hand. Lookups then go to the S3's own address automatically.</p>
+      <p class="status"><span class="sev low">Passed in simulation</span><span>Two simulated OpenThread nodes proved the lookup, including a controller reboot. The offline controller firmware builds. The on-device checkpoint below is still open.</span></p>
+      <p class="gate"><b>Checkpoint</b>The S3 talks to the H2 and becomes Thread leader. The lookup service is running, and the S3 can register a test service with it and resolve that service again. The network survives a reboot.</p>
+    </div></div>
+    <div class="phase"><span class="n">2</span><div class="body">
+      <h3>Pair one MYGGBETT</h3>
+      <p>Load IKEA's root certificate. Pair one sensor from the console with <code>pair &lt;code&gt;</code>, then check that its subscription to StateValue on endpoint 1 comes up.</p>
+      <p class="status"><span class="sev med">Waiting for the S3</span><span>The firmware for this step is written and builds, with IKEA's root certificate bundled.</span></p>
+      <p class="gate"><b>Checkpoint</b>Pairing succeeds and opening and closing the window shows up within a few seconds. If pairing fails with <code>error: ac</code>, stop and debug that before going any further.</p>
+    </div></div>
+    <div class="phase"><span class="n">3</span><div class="body">
+      <h3>The application</h3>
+      <ul>
+        <li><b>Slot manager:</b> slot n ↔ node ID in flash, filling the lowest free slot, 8 slots maximum</li>
+        <li><b>Subscription manager:</b> subscribe to StateValue for each sensor, resubscribe after boot and after drops with backoff, and mark a sensor as not heard from</li>
+        <li><b>LED renderer:</b> turns slot states into colours, with the brightness cap and the pairing animation</li>
+        <li><b>Console commands:</b> <code>pair &lt;code&gt;</code>, <code>list</code>, <code>remove &lt;slot&gt;</code>, <code>identify &lt;slot&gt;</code>, <code>factory-reset confirm</code></li>
+      </ul>
+      <p class="status"><span class="sev med">Written, not run</span><span>All four parts are written and build. The logic that doesn't need Matter (slots, backoff, LED states, pairing codes, console parsing, channel choice) passes about 35 000 test checks on the build machine. The review's fixes are in.</span></p>
+      <p class="gate"><b>Checkpoint</b>With two sensors paired, each drives its own LED, and after a power cycle both LEDs are right again without re-pairing.</p>
+    </div></div>
+    <div class="phase"><span class="n">4</span><div class="body">
+      <h3>Multiple sensors and a 48-hour test</h3>
+      <p>Pair 3 or more sensors and run the device for 48 hours. Test a battery swap, a power loss, removing and re-adding a sensor, and a sensor moved out of range.</p>
+      <p class="gate"><b>Checkpoint</b>No stuck LEDs. Every state change shows up within a few seconds, and dropped connections recover on their own.</p>
+    </div></div>
+    <div class="phase"><span class="n">5</span><div class="body">
+      <h3>Enclosure and handover</h3>
+      <p>Mount the supply in its enclosure, strain-relieve the mains lead, and tidy the low-voltage side. Write a README covering pairing, removal and reflashing. With 8 MB of flash, over-the-air updates become an option later.</p>
+    </div></div>
+  </div>
+</section>
+
+<!-- ============ FINDINGS ============ -->
+<section style="display:grid;gap:20px" aria-labelledby="fi-h">
+  <div class="col">
+    <span class="eyebrow">5 · Findings</span>
+    <h2 id="fi-h">What the build and the review taught us</h2>
+    <p>Found on 30 Sep 2026 while installing the toolchain, running the simulation, building the firmware and reviewing it, by reading the ESP-IDF, OpenThread and esp-matter sources that the build uses.</p>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Finding</th><th>What it means here</th></tr></thead>
+      <tbody>
+        <tr><td>Matter points its DNS client at whichever SRP server its own SRP client finds.</td><td>On the S3 that is its own lookup service, so no custom lookup configuration is needed.</td></tr>
+        <tr><td>OpenThread's SRP server moves to a new port every time it starts.</td><td>After a power cut, sensors notice the change and re-register within seconds instead of waiting out their 2-hour lease.</td></tr>
+        <tr><td>On the ESP, the S3's lookup query to itself passes through lwIP, the ESP's IP stack.</td><td>It relies on lwIP's per-interface loopback, which is on by default. This is the first check on the real S3.</td></tr>
+        <tr><td>ESP-IDF only includes the SRP and DNS-SD servers in its border router mode, which normally expects Wi-Fi.</td><td>The firmware keeps border router mode on and skips its Wi-Fi-only setup. It builds; whether it runs is still to prove.</td></tr>
+        <tr><td>ESP-IDF's prebuilt border router library calls mDNS even when there is no Wi-Fi, so the offline build fails to link.</td><td>mDNS is linked but never started, so its calls do nothing. Expect one harmless error line in the log when the S3 becomes leader.</td></tr>
+        <tr><td>The radio link between the boards runs at 460 800 baud.</td><td>Both sides use this by default, so only the pins change. A leftover 115 200 setting from an unused firmware-update feature has been removed.</td></tr>
+        <tr><td>esp-matter's subscription helper hides errors, ignores keep-alive reports and gives up after 2 retries.</td><td>The firmware subscribes through Matter's lower-level <code>ReadClient</code> API instead and schedules its own retries.</td></tr>
+        <tr><td>esp-matter's pairing helper returns success even when pairing fails to start.</td><td>The firmware calls Matter's <code>PairDevice()</code> directly and gives up after 5 minutes.</td></tr>
+        <tr><td>IKEA's root certificate is <i>IKEA of Sweden Matter PAA G1</i> in the CSA's registry.</td><td>It's bundled, with every other production root certificate, in a 256 KB flash partition.</td></tr>
+        <tr><td>Espressif's example assumes quad PSRAM; the N8R8 board most likely has octal.</td><td>The firmware is set to octal. Check the first boot log.</td></tr>
+        <tr><td>With no radio firmware updates, the example's 600 KB update partition is unused.</td><td>It now holds the certificates, and the app partition grew to 3.5 MB. The firmware is 2.2 MB. A 128 KB partition keeps the last crash report for the 48-hour test.</td></tr>
+        <tr><td>Matter only reports a sleepy sensor's empty keep-alive reports through a separate callback.</td><td>The first draft missed them and would have marked quiet sensors dead every 10 minutes. It now counts them.</td></tr>
+        <tr><td>Matter calls the pairing delegate again right after “commissioning complete”, and reports a failed Bluetooth search only as a status update.</td><td>The first draft would have crashed after every pairing and missed failed searches. Pairing now ends on the right callbacks, which matters for spotting the IKEA Bluetooth bug.</td></tr>
+        <tr><td>Matter can look sensors up only after the S3's own SRP client has registered once, and it announces that with an event.</td><td>Subscribing and pairing wait for that event. The startup animation runs until then.</td></tr>
+        <tr><td>Matter's default limits allow 8 open exchanges and 4 handshakes at once.</td><td>After a reboot, 8 sleepy sensors reconnect at the same time, so the limits are raised to 20 and 10.</td></tr>
+        <tr><td>One row of the pairing-code check-digit table was wrong, and the tests used the same table.</td><td>About 1.7% of real codes would have been rejected as typos. Fixed, and the tests now check against the Matter SDK's own algorithm.</td></tr>
+        <tr><td>A random Thread channel is fixed for good once sensors are paired.</td><td>On first boot the S3 listens on all 16 channels and picks the quietest.</td></tr>
+        <tr><td>esp-matter's installer fails on Python 3.13 (Debian 13) because of a conflicting version pin.</td><td>A one-line local fix on the build machine. Re-apply it after re-cloning esp-matter.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col where">
+    <h3>Where the work lives</h3>
+    <ul>
+      <li><code>firmware/controller</code>: the S3 firmware</li>
+      <li><code>firmware/components/app_core</code>: slots, backoff, sensor states, pairing codes and console parsing, with host tests</li>
+      <li><code>firmware/components/led_pattern</code>: the LED colours and timings</li>
+      <li><code>firmware/led_test</code>: the Phase 0 LED test for either board</li>
+      <li><code>sim/phase1_offline_lookup.py</code>: the Phase 1 simulation test</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ DECISIONS ============ -->
+<section style="display:grid;gap:20px" aria-labelledby="d-h">
+  <div class="col">
+    <span class="eyebrow">6 · Decisions</span>
+    <h2 id="d-h">Decisions (all settled)</h2>
+  </div>
+  <div class="decisions">
+    <div class="decision"><h3>Decided · Fully offline</h3><p>No Wi-Fi. The S3 runs the Thread network and its lookup service on its own. Phase 1 proves this before anything else.</p></div>
+    <div class="decision"><h3>Decided · Hardware</h3><p>ESP32-S3-Zero-N8R8 as the Matter controller, with the ESP32-H2-Zero as its Thread radio. The ESP32-C5-Zero was ruled out: no PSRAM, and an open bug that stops new devices joining Thread while Bluetooth is running.</p></div>
+    <div class="decision"><h3>Decided · LED colours and states</h3><p>Amber for open, off for closed, a green pulse while pairing, and a dim blue blink when a sensor hasn't been heard from. Added later: a white sweep while starting up, dim white until a sensor's first report, and red when the Thread radio doesn't answer.</p></div>
+    <div class="decision"><h3>Decided · Pairing from the USB serial console</h3><p>Connect a computer to the S3 and type <code>pair &lt;11-digit code&gt;</code>.</p></div>
+  </div>
+  <div class="col">
+    <h3>Chosen during the build</h3>
+    <p class="muted">Defaults picked while writing the firmware. Any of them can change.</p>
+  </div>
+  <div class="decisions">
+    <div class="decision"><h3>Console commands</h3><p>Slots are numbered 1–8. <code>factory-reset</code> needs the word <code>confirm</code>: it asks each sensor to leave, waits until they all answer (at most 2 minutes, since sleepy sensors answer when they wake), erases the slots, the Matter fabric and the Thread network, and reboots. <code>identify &lt;slot&gt;</code> makes the sensor itself blink for 10 s; the stick doesn't change.</p></div>
+    <div class="decision"><h3>Timings</h3><p>Blue after 2 minutes without a connection. Retries every 10 s, doubling to at most 5 minutes. Subscriptions ask for a report at least every 5 minutes (a sleepy sensor may choose longer). Pairing gives up after 5 minutes.</p></div>
+    <div class="decision"><h3>Certificates</h3><p>The firmware trusts every production root certificate in the CSA's registry, not only IKEA's, and none of Matter's test certificates.</p></div>
+  </div>
+</section>
+
+<!-- ============ FACTS / SOURCES ============ -->
+<section style="display:grid;gap:20px" aria-labelledby="f-h">
+  <div class="col">
+    <span class="eyebrow">7 · Reference</span>
+    <h2 id="f-h">Key facts from the documentation</h2>
+  </div>
+  <div class="facts">
+    <div class="fact">
+      <h3>RS-15-5</h3>
+      <ul>
+        <li>85–264 VAC input, 5 V at 3 A output, adjustable 4.75–5.5 V</li>
+        <li>Terminals in order: L, N, FG, −V, +V, then the ADJ pot</li>
+        <li>Protected against overload (recovers on its own), overvoltage above 5.75–6.75 V, and overheating</li>
+        <li>FG must be earthed. M3 terminal screws, 6–8 kgf·cm.</li>
+      </ul>
+      <p class="src muted">Datasheet 2026-04-10 · installation manual 2025-12-17</p>
+    </div>
+    <div class="fact">
+      <h3>ESP32-S3-Zero-N8R8</h3>
+      <ul>
+        <li>Dual-core ESP32-S3 at 240 MHz, 512 KB SRAM, 8 MB flash, 8 MB PSRAM. Wi-Fi and Bluetooth LE, no 802.15.4. Wi-Fi stays off in this design.</li>
+        <li>Left edge from the USB end: 5V, GND, 3V3, GPIO1–6. Right edge: TX (43), RX (44), GPIO13–7. More GPIOs are pads underneath.</li>
+        <li>5V pin wired straight to USB VBUS. ME6217 regulator, 3.3 V, 800 mA max.</li>
+        <li>Onboard WS2812 on GPIO21, BOOT button on GPIO0, native USB on GPIO19/20</li>
+        <li>Pins that affect boot: GPIO0, 3, 45 and 46. GPIO33–37 are used by the PSRAM.</li>
+      </ul>
+      <p class="src muted">Electrokit 41036435 · Waveshare docs and schematic</p>
+    </div>
+    <div class="fact">
+      <h3>ESP32-H2-Zero</h3>
+      <ul>
+        <li>ESP32-H2FH4: 802.15.4 and Bluetooth LE, 4 MB flash</li>
+        <li>5V pin wired straight to USB VBUS, with no diode or fuse. ME6217 regulator (3.3 V).</li>
+        <li>UART0: TX on GPIO24 (with a 499 Ω series resistor) and RX on GPIO23. In this design these carry the radio link to the S3.</li>
+        <li>USB is the chip's own USB serial/JTAG, used to flash the RCP firmware</li>
+      </ul>
+      <p class="src muted">Waveshare schematic · ESP32-H2 datasheet v1.3</p>
+    </div>
+    <div class="fact">
+      <h3>WS2812 stick</h3>
+      <ul>
+        <li>Input pads: GND, DIN, 4-7VDC, GND. The DOUT end is for chaining.</li>
+        <li>60 mA per LED at full white, so 480 mA for all 8</li>
+        <li>The data line must reach at least 0.7 × supply voltage to count as high (3.5 V at 5 V), so the ESP32's 3.3 V is out of spec</li>
+        <li>800 kHz, GRB order. Use a reset gap of at least 280 µs to cover all LED variants.</li>
+      </ul>
+      <p class="src muted">Worldsemi WS2812B / V5 datasheets · Adafruit NeoPixel Überguide</p>
+    </div>
+    <div class="fact">
+      <h3>MYGGBETT E2492</h3>
+      <ul>
+        <li>Matter over Thread, paired over Bluetooth. Vendor ID 0x117C, product ID 0x8007, firmware 1.0.9–1.1.6.</li>
+        <li>Endpoint 1 is a Contact Sensor with Identify and BooleanState. StateValue is true when closed.</li>
+        <li>A sleepy Thread device with short check-in intervals. It doesn't support the Check-In protocol, so the controller must keep a subscription alive.</li>
+        <li>Pairing window is 15 minutes, opened by inserting the battery or pressing the button once. Factory reset: hold 10 seconds.</li>
+        <li>The Matter code is printed on the sensor and on the Advice &amp; Care booklet. Don't use the yellow IKEA-app code.</li>
+      </ul>
+      <p class="src muted">IKEA manual · CSA certificate · matter-survey.org</p>
+    </div>
+  </div>
+
+  <div class="col" style="max-width:none">
+    <h3>Sources</h3>
+    <ul class="sources">
+      <li><a href="https://www.meanwell.com/Upload/PDF/RS-15/RS-15-SPEC.PDF">Mean Well RS-15 datasheet</a></li>
+      <li><a href="https://www.meanwell.com/Upload/PDF/Enclosed_Type_EN.pdf">Mean Well enclosed-type installation manual</a></li>
+      <li><a href="https://www.electrokit.com/en/esp32-s3-utvecklingskort-mini-8mb-psram-8mb">Electrokit: ESP32-S3-Zero-N8R8</a></li>
+      <li><a href="https://docs.waveshare.com/ESP32-S3-Zero">Waveshare ESP32-S3-Zero docs</a></li>
+      <li><a href="https://files.waveshare.com/wiki/ESP32-S3-Zero/ESP32-S3-Zero-Sch.pdf">ESP32-S3-Zero schematic</a></li>
+      <li><a href="https://www.waveshare.com/wiki/ESP32-H2-Zero">Waveshare ESP32-H2-Zero wiki</a></li>
+      <li><a href="https://files.waveshare.com/wiki/ESP32-H2-Zero/ESP32-H2-Zero-Schematic.pdf">ESP32-H2-Zero schematic</a></li>
+      <li><a href="https://documentation.espressif.com/esp32-h2_datasheet_en.pdf">Espressif ESP32-H2 datasheet v1.3</a></li>
+      <li><a href="https://docs.waveshare.com/ESP32-C5-Zero">Waveshare ESP32-C5-Zero docs</a></li>
+      <li><a href="https://learn.adafruit.com/adafruit-neopixel-uberguide/best-practices">Adafruit NeoPixel Überguide: best practices</a></li>
+      <li><a href="https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf">Worldsemi WS2812B datasheet</a></li>
+      <li><a href="https://www.ti.com/product/CD74HCT125">TI CD74HCT125</a></li>
+      <li><a href="https://www.ikea.com/us/en/manuals/myggbett-door-window-sensor-smart__AA-2664591-3-100.pdf">IKEA MYGGBETT manual</a></li>
+      <li><a href="https://csa-iot.org/csa_product/myggbett-door-window-sensor/">CSA Matter certificate: MYGGBETT</a></li>
+      <li><a href="https://matter-survey.org/device/myggbett-door-window-sensor-4476-32775">matter-survey.org: MYGGBETT clusters</a></li>
+      <li><a href="https://github.com/espressif/esp-matter/tree/main/examples/controller">esp-matter controller example</a></li>
+      <li><a href="https://docs.espressif.com/projects/esp-matter/en/latest/esp32s3/controller.html">esp-matter controller docs</a></li>
+      <li><a href="https://github.com/espressif/esp-thread-br">espressif/esp-thread-br</a></li>
+      <li><a href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32h2/api-guides/coexist.html">ESP-IDF radio coexistence guide</a></li>
+      <li><a href="https://github.com/espressif/esp-matter/issues/1772">esp-matter #1772: IKEA Bluetooth pairing error</a></li>
+      <li><a href="https://github.com/espressif/esp-matter/issues/1532">esp-matter #1532: IKEA Bluetooth pairing error</a></li>
+      <li><a href="https://github.com/espressif/esp-matter/issues/1851">esp-matter #1851: C5 Thread join fails during Bluetooth</a></li>
+      <li><a href="https://components.espressif.com/components/espressif/led_strip">espressif/led_strip component</a></li>
+      <li><a href="https://on.dcl.csa-iot.org">CSA Distributed Compliance Ledger (MainNet)</a></li>
+      <li><a href="https://github.com/project-chip/connectedhomeip/blob/master/credentials/fetch_paa_certs_from_dcl.py">connectedhomeip: fetch_paa_certs_from_dcl.py</a></li>
+      <li><a href="https://openthread.io/reference/group/api-srp">OpenThread SRP API reference</a></li>
+    </ul>
+  </div>
+</section>
+
+</div>
+
+
+</body></html>

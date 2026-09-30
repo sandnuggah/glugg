@@ -1,0 +1,2 @@
+# Both Zero boards wire USB-C straight to the chip's USB Serial/JTAG (no USB-UART bridge).
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y

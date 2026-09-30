@@ -1,0 +1,10 @@
+dependencies:
+  espressif/led_strip: "3.0.3"
+  # Unused (no RCP auto-update), but Matter's chip component requires it whenever OPENTHREAD_BORDER_ROUTER is on.
+  espressif/esp_rcp_update:
+        version: "~1.6.0"
+  # The prebuilt libopenthread_br.a calls mdns to advertise the border agent. Matter's chip component already depends
+  # on mdns, but with Wi-Fi off nothing else links it before the openthread archive, so main/CMakeLists.txt adds the
+  # missing link edge. mdns is never initialised, so those calls fail harmlessly: checked in 1.13.1, hence the pin.
+  espressif/mdns:
+        version: "~1.13.1"

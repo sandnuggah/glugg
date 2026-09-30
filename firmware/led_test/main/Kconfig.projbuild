@@ -1,0 +1,26 @@
+menu "LED test"
+
+    config LEDTEST_STRIP_GPIO
+        int "LED stick data GPIO (to 74HCT125N pin 2)"
+        default 13 if IDF_TARGET_ESP32S3
+        default 4
+        help
+            S3-Zero: GPIO13 as in the final wiring.
+            H2-Zero: GPIO4 (on the header, not a strapping pin).
+
+    config LEDTEST_STRIP_LEDS
+        int "Number of LEDs on the stick"
+        default 8
+
+    config LEDTEST_ONBOARD_GPIO
+        int "Onboard WS2812 GPIO"
+        default 21 if IDF_TARGET_ESP32S3
+        default 8
+
+    config LEDTEST_ONBOARD_RGB_ORDER
+        bool "Onboard LED uses RGB byte order instead of GRB"
+        default n
+        help
+            Enable this if the onboard LED shows green during the "RED" step.
+
+endmenu

@@ -1,0 +1,23 @@
+set(SRC_DIRS_LIST ".")
+if (CONFIG_CUSTOM_REVOKED_DAC_CHAIN_CHECK)
+    list(APPEND SRC_DIRS_LIST "revocation_set")
+endif()
+
+idf_component_register(SRC_DIRS          ${SRC_DIRS_LIST}
+                       INCLUDE_DIRS      "."
+                       PRIV_INCLUDE_DIRS  "." "${ESP_MATTER_PATH}/examples/common/utils"
+                       LDFRAGMENTS "linker.lf")
+
+if(CONFIG_SPIFFS_ATTESTATION_TRUST_STORE)
+    spiffs_create_partition_image(paa_cert ${CMAKE_SOURCE_DIR}/paa_cert FLASH_IN_PROJECT)
+endif()
+
+target_compile_options(${COMPONENT_LIB} PRIVATE "-DCHIP_HAVE_CONFIG_H")
+
+# Offline build: ESP-IDF's prebuilt libopenthread_br.a calls mdns_* (border agent advertising), but the openthread
+# component only declares mdns when TREL is on. With Wi-Fi off nothing else links mdns, so add the missing edge here.
+if(CONFIG_OPENTHREAD_BORDER_ROUTER)
+    idf_component_get_property(openthread_lib openthread COMPONENT_LIB)
+    idf_component_get_property(mdns_lib espressif__mdns COMPONENT_LIB)
+    target_link_libraries(${openthread_lib} INTERFACE ${mdns_lib})
+endif()

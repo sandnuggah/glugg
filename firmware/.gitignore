@@ -1,0 +1,9 @@
+build/
+build_*/
+build*.log
+managed_components/
+sdkconfig
+sdkconfig.old
+sdkconfig.esp32*
+components/*/test/test_*
+!components/*/test/test_*.c
