@@ -20,7 +20,8 @@ Glugg (Swedish for a small opening in a wall) watches the windows of the user's 
 | Network | **Fully offline, no Wi-Fi.** The S3 runs the Thread network plus the SRP and DNS-SD servers itself. |
 | Pairing | USB serial console on the S3: `pair <11-digit code>` |
 | LEDs | open = warm amber at about 25% brightness · closed or empty slot = off · pairing into slot = slow green pulse · sensor not heard from = dim blue blink · starting up = a dim white dot sweeping back and forth across all 8 LEDs until the Thread network and Matter's lookup service are up · paired sensor that hasn't reported yet (since boot or pairing) = steady dim white, until it reports or the blue blink takes over after 2 min · Thread radio (H2) not responding = all LEDs red for a few seconds, then the S3 restarts |
-| Slots | 8 max. Removing a sensor frees its slot, and the next pairing takes the lowest free slot. |
+| Slots | 8 max for now (one 8-LED stick). Removing a sensor frees its slot, and the next pairing takes the lowest free slot. |
+| Scale-up (decided 2026-10-01) | The workshop has 4 rooms with ~30 windows each. Plan: **one Glugg unit per room** (S3 + H2 + its own LED strip, one LED per window, its own Thread network), not one central controller with Thread routers. Comes after Phase 4 (see Phase 6). |
 | Toolchain | **ESP-IDF v5.5.5** + **esp-matter release/v1.6** (component 1.6.0) + `espressif/led_strip` 3.0.3 |
 | Emulation | No Wokwi. The user skipped the Matter desktop tools (chip-tool + contact-sensor-app). Test LED code on the real H2-Zero + LED stick. |
 
@@ -74,6 +75,12 @@ Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the control
    - **Not started.**
 5. **Enclosure + README.**
    - **Not started.**
+6. **Scale to one unit per room (~30 sensors each).** Not started; size it from Phase 4's measured memory use per sensor.
+   - `SLOT_COUNT` 8 → ~30 (bump the slot blob `VERSION` and migrate), a ~30-LED strip on the same data path.
+   - OpenThread child table (`CONFIG_OPENTHREAD_MLE_MAX_CHILDREN`) 10 → ≥32. Matter secure session pool 17 → ~40, exchanges and handshake pools to match.
+   - Cap concurrent subscribe attempts (e.g. 8) so 30 sleepy sensors don't all reconnect at once after a power cut.
+   - `pair <code> <slot>`, so a window's LED position is chosen, not "lowest free".
+   - Probably no Thread router needed inside one room; check link quality with `matter esp ot_cli child table`.
 
 Keep app logic (slots, LED state mapping, backoff, command parsing) free of Matter and ESP dependencies behind small interfaces, so it can be unit-tested on the host.
 
