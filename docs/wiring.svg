@@ -1,0 +1,234 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="780" viewBox="0 0 1320 780" role="img" aria-label="Wiring: mains to RS-15-5 L, N and FG. RS-15-5 +V and −V form a 5 V rail and a ground rail. The 5 V rail feeds the ESP32-H2-Zero and the ESP32-S3-Zero 5V pins through one 1N5817 diode each, the 74HCT125 VCC and the LED stick. H2 TX goes to S3 GPIO5, and S3 GPIO6 goes through a 1 kΩ resistor to H2 RX. S3 GPIO13 goes to 74HCT125 input 1A with a 10 kΩ pull-down; output 1Y goes through 330 Ω to the stick's DIN. A 1000 µF capacitor sits across the rails at the stick.">
+<style>
+  svg { --bg: #f4f5f2; --surface: #ffffff; --fg: #1a1d1b; --muted: #5a625c; --accent: #17614a; --accent-soft: #e2eee8; --w5v: #d0312d; --wgnd: #2b2f2d; --wdata: #b97f00; --wL: #8a5a2b; --wN: #2f6fd1; --wPE: #3f8f3a; --lit: #f2a900; --wuart: #7a4fc9; --high: #b42318; --high-soft: #fbe9e7; --f-display: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; --f-mono: ui-monospace, Menlo, Consolas, monospace; color: var(--fg); font-family: var(--f-mono); }
+  @media (prefers-color-scheme: dark) { svg { --bg: #111412; --surface: #191d1b; --fg: #e5e9e6; --muted: #9ba49e; --accent: #5cc79e; --accent-soft: #1b2d25; --w5v: #ff6b63; --wgnd: #c3cac5; --wdata: #f0b429; --wL: #c9925c; --wN: #6ea2ff; --wPE: #6cc766; --lit: #ffc233; --wuart: #b79cff; --high: #ff8a80; --high-soft: #3a1c1a; } }
+</style>
+<rect width="1320" height="780" rx="8" fill="var(--surface)"/>
+        <g font-size="12" fill="currentColor">
+
+        <!-- ===== Rails ===== -->
+        <polyline points="290,160 290,200 1240,200" fill="none" stroke="var(--w5v)" stroke-width="3"/>
+        <polyline points="240,160 240,740 1240,740" fill="none" stroke="var(--wgnd)" stroke-width="3"/>
+        <text x="400" y="190" fill="var(--w5v)" font-weight="500">+5 V rail</text>
+        <text x="400" y="762" fill="var(--wgnd)" font-weight="500">GND rail (common ground)</text>
+
+        <!-- ===== PSU ===== -->
+        <rect x="30" y="30" width="340" height="100" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
+        <text x="48" y="60" font-family="var(--f-display)" font-size="16" font-weight="600">MEAN WELL RS-15-5</text>
+        <text x="48" y="82" fill="var(--muted)">85–264 VAC in · 5 V / 3 A out</text>
+        <text x="48" y="100" fill="var(--muted)">leave pot at 5.0 V</text>
+        <g font-size="11" text-anchor="middle">
+          <rect x="53" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="70" y="149">L</text>
+          <rect x="103" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="120" y="149">N</text>
+          <rect x="153" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="170" y="149">FG⏚</text>
+          <rect x="223" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="240" y="149">−V</text>
+          <rect x="273" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="290" y="149">+V</text>
+          <circle cx="340" cy="145" r="10" fill="var(--surface)" stroke="currentColor"/><line x1="334" y1="151" x2="346" y2="139" stroke="currentColor"/>
+          <text x="70" y="124" fill="var(--muted)" font-size="10">1</text>
+          <text x="120" y="124" fill="var(--muted)" font-size="10">2</text>
+          <text x="170" y="124" fill="var(--muted)" font-size="10">3</text>
+          <text x="240" y="124" fill="var(--muted)" font-size="10">4</text>
+          <text x="290" y="124" fill="var(--muted)" font-size="10">5</text>
+          <text x="340" y="124" fill="var(--muted)" font-size="10">ADJ</text>
+        </g>
+
+        <!-- ===== Mains ===== -->
+        <line x1="70" y1="160" x2="70" y2="250" stroke="var(--wL)" stroke-width="3"/>
+        <line x1="120" y1="160" x2="120" y2="250" stroke="var(--wN)" stroke-width="3"/>
+        <line x1="170" y1="160" x2="170" y2="250" stroke="var(--wPE)" stroke-width="3"/>
+        <line x1="170" y1="160" x2="170" y2="250" stroke="var(--lit)" stroke-width="3" stroke-dasharray="6 6" opacity="0.8"/>
+        <rect x="30" y="250" width="180" height="70" rx="4" fill="var(--high-soft)" stroke="var(--high)" stroke-width="1.5"/>
+        <g font-size="11" text-anchor="middle">
+          <text x="70" y="270">L</text><text x="120" y="270">N</text><text x="170" y="270">PE</text>
+        </g>
+        <text x="120" y="292" text-anchor="middle" font-weight="600" fill="var(--high)">230 V AC mains</text>
+        <text x="120" y="309" text-anchor="middle" font-size="11" fill="var(--high)">via fused switch</text>
+        <text x="30" y="372" font-size="11" fill="var(--muted)">earth (FG) is required</text>
+        <text x="30" y="388" font-size="11" fill="var(--muted)">M3 screws, 0.6–0.8 N·m</text>
+        <text x="30" y="404" font-size="11" fill="var(--muted)">≥ 0.75 mm² / AWG18</text>
+
+        <!-- ===== H2 5V feed with 1N5817 ===== -->
+        <circle cx="300" cy="200" r="4.5" fill="var(--w5v)"/>
+        <line x1="300" y1="200" x2="300" y2="250" stroke="var(--w5v)" stroke-width="3"/>
+        <polygon points="290,250 310,250 300,266" fill="var(--w5v)"/>
+        <line x1="289" y1="268" x2="311" y2="268" stroke="var(--w5v)" stroke-width="2.5"/>
+        <polyline points="300,268 300,430 330,430" fill="none" stroke="var(--w5v)" stroke-width="3"/>
+        <text x="318" y="258" font-size="11" font-weight="600">1N5817</text>
+        <text x="318" y="272" font-size="10" fill="var(--muted)">Schottky</text>
+
+        <!-- H2 GND -->
+        <polyline points="330,458 240,458" fill="none" stroke="var(--wgnd)" stroke-width="3"/>
+        <circle cx="240" cy="458" r="4.5" fill="var(--wgnd)"/>
+
+        <!-- ===== S3 5V feed with 1N5817 ===== -->
+        <circle cx="600" cy="200" r="4.5" fill="var(--w5v)"/>
+        <line x1="600" y1="200" x2="600" y2="228" stroke="var(--w5v)" stroke-width="3"/>
+        <polygon points="590,228 610,228 600,244" fill="var(--w5v)"/>
+        <line x1="589" y1="246" x2="611" y2="246" stroke="var(--w5v)" stroke-width="2.5"/>
+        <polyline points="600,246 600,280 640,280" fill="none" stroke="var(--w5v)" stroke-width="3"/>
+        <text x="584" y="236" font-size="11" text-anchor="end" font-weight="600">1N5817</text>
+        <text x="584" y="251" font-size="10" text-anchor="end" fill="var(--muted)">Schottky</text>
+
+        <!-- S3 GND: hops over the H2 5V feed -->
+        <path d="M640 308 L620 308 L620 345 L306 345 A6 6 0 0 0 294 345 L240 345" fill="none" stroke="var(--wgnd)" stroke-width="3"/>
+        <circle cx="240" cy="345" r="4.5" fill="var(--wgnd)"/>
+
+        <!-- ===== ESP32-H2-Zero (radio) ===== -->
+        <rect x="390" y="388" width="60" height="16" rx="4" fill="var(--surface)" stroke="currentColor"/>
+        <text x="420" y="380" text-anchor="middle" font-size="11" fill="var(--muted)">USB-C (flashing)</text>
+        <rect x="330" y="402" width="180" height="290" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="420" y="540" text-anchor="middle" font-family="var(--f-display)" font-size="15" font-weight="600">ESP32-H2-Zero</text>
+        <text x="420" y="558" text-anchor="middle" font-size="11" fill="var(--muted)">Thread radio (RCP)</text>
+        <text x="420" y="682" text-anchor="middle" font-size="10" fill="var(--muted)">antenna end</text>
+        <g font-size="11">
+          <g text-anchor="start">
+            <text x="340" y="434" font-weight="600">5V</text>
+            <text x="340" y="462" font-weight="600">GND</text>
+            <text x="340" y="490" fill="var(--muted)">3V3</text>
+            <text x="340" y="518" fill="var(--muted)">0</text>
+            <text x="340" y="546" fill="var(--muted)">1</text>
+            <text x="340" y="574" fill="var(--muted)">2</text>
+            <text x="340" y="602" fill="var(--muted)">3</text>
+            <text x="340" y="630" fill="var(--muted)">4</text>
+            <text x="340" y="658" fill="var(--muted)">5</text>
+          </g>
+          <g text-anchor="end">
+            <text x="500" y="434" font-weight="600">TX</text>
+            <text x="500" y="462" font-weight="600">RX</text>
+            <text x="500" y="490" fill="var(--muted)">25</text>
+            <text x="500" y="518" fill="var(--muted)">22</text>
+            <text x="500" y="546" fill="var(--muted)">14</text>
+            <text x="500" y="574" fill="var(--muted)">13</text>
+            <text x="500" y="602" fill="var(--muted)">12</text>
+            <text x="500" y="630" fill="var(--muted)">11</text>
+            <text x="500" y="658" fill="var(--muted)">10</text>
+          </g>
+          <g fill="var(--surface)" stroke="currentColor">
+            <circle cx="330" cy="430" r="4"/><circle cx="330" cy="458" r="4"/><circle cx="330" cy="486" r="4"/><circle cx="330" cy="514" r="4"/><circle cx="330" cy="542" r="4"/><circle cx="330" cy="570" r="4"/><circle cx="330" cy="598" r="4"/><circle cx="330" cy="626" r="4"/><circle cx="330" cy="654" r="4"/>
+            <circle cx="510" cy="430" r="4"/><circle cx="510" cy="458" r="4"/><circle cx="510" cy="486" r="4"/><circle cx="510" cy="514" r="4"/><circle cx="510" cy="542" r="4"/><circle cx="510" cy="570" r="4"/><circle cx="510" cy="598" r="4"/><circle cx="510" cy="626" r="4"/><circle cx="510" cy="654" r="4"/>
+          </g>
+        </g>
+
+        <!-- ===== UART between boards ===== -->
+        <polyline points="510,430 560,430 560,476 640,476" fill="none" stroke="var(--wuart)" stroke-width="3"/>
+        <polyline points="640,504 622,504" fill="none" stroke="var(--wuart)" stroke-width="3"/>
+        <rect x="592" y="498" width="30" height="12" fill="var(--surface)" stroke="currentColor" stroke-width="1.5"/>
+        <text x="607" y="492" text-anchor="middle" font-size="10" font-weight="600">1 kΩ</text>
+        <polyline points="592,504 540,504 540,458 510,458" fill="none" stroke="var(--wuart)" stroke-width="3" stroke-dasharray="8 4"/>
+        <text x="516" y="421" font-size="10" fill="var(--wuart)" font-weight="600">H2 TX → S3 RX</text>
+        <text x="546" y="522" font-size="10" fill="var(--wuart)" font-weight="600">S3 TX → H2 RX</text>
+
+        <!-- ===== ESP32-S3-Zero-N8R8 ===== -->
+        <rect x="700" y="238" width="60" height="16" rx="4" fill="var(--surface)" stroke="currentColor"/>
+        <text x="730" y="230" text-anchor="middle" font-size="11" fill="var(--muted)">USB-C → computer (console)</text>
+        <rect x="640" y="252" width="180" height="290" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="730" y="382" text-anchor="middle" font-family="var(--f-display)" font-size="15" font-weight="600">ESP32-S3-Zero</text>
+        <text x="730" y="399" text-anchor="middle" font-size="11" fill="var(--muted)">N8R8 · Matter controller</text>
+        <text x="730" y="426" text-anchor="middle" font-size="10" fill="var(--muted)">onboard RGB = GPIO21</text>
+        <text x="730" y="441" text-anchor="middle" font-size="10" fill="var(--muted)">BOOT = GPIO0</text>
+        <text x="730" y="532" text-anchor="middle" font-size="10" fill="var(--muted)">antenna end</text>
+        <g font-size="11">
+          <g text-anchor="start">
+            <text x="650" y="284" font-weight="600">5V</text>
+            <text x="650" y="312" font-weight="600">GND</text>
+            <text x="650" y="340" fill="var(--muted)">3V3</text>
+            <text x="650" y="368" fill="var(--muted)">1</text>
+            <text x="650" y="396" fill="var(--muted)">2</text>
+            <text x="650" y="424" fill="var(--muted)">3</text>
+            <text x="650" y="452" fill="var(--muted)">4</text>
+            <text x="650" y="480" font-weight="600">5</text>
+            <text x="650" y="508" font-weight="600">6</text>
+          </g>
+          <g text-anchor="end">
+            <text x="810" y="284" fill="var(--muted)">TX</text>
+            <text x="810" y="312" fill="var(--muted)">RX</text>
+            <text x="810" y="340" font-weight="600">13</text>
+            <text x="810" y="368" fill="var(--muted)">12</text>
+            <text x="810" y="396" fill="var(--muted)">11</text>
+            <text x="810" y="424" fill="var(--muted)">10</text>
+            <text x="810" y="452" fill="var(--muted)">9</text>
+            <text x="810" y="480" fill="var(--muted)">8</text>
+            <text x="810" y="508" fill="var(--muted)">7</text>
+          </g>
+          <g fill="var(--surface)" stroke="currentColor">
+            <circle cx="640" cy="280" r="4"/><circle cx="640" cy="308" r="4"/><circle cx="640" cy="336" r="4"/><circle cx="640" cy="364" r="4"/><circle cx="640" cy="392" r="4"/><circle cx="640" cy="420" r="4"/><circle cx="640" cy="448" r="4"/><circle cx="640" cy="476" r="4"/><circle cx="640" cy="504" r="4"/>
+            <circle cx="820" cy="280" r="4"/><circle cx="820" cy="308" r="4"/><circle cx="820" cy="336" r="4"/><circle cx="820" cy="364" r="4"/><circle cx="820" cy="392" r="4"/><circle cx="820" cy="420" r="4"/><circle cx="820" cy="448" r="4"/><circle cx="820" cy="476" r="4"/><circle cx="820" cy="504" r="4"/>
+          </g>
+        </g>
+
+        <!-- ===== GPIO13 → 1A, with pull-down ===== -->
+        <line x1="820" y1="336" x2="900" y2="336" stroke="var(--wdata)" stroke-width="3"/>
+        <text x="826" y="326" font-size="10" fill="var(--wdata)" font-weight="600">3.3 V data</text>
+        <circle cx="860" cy="336" r="4.5" fill="var(--wdata)"/>
+        <line x1="860" y1="336" x2="860" y2="470" stroke="var(--wdata)" stroke-width="2"/>
+        <rect x="854" y="470" width="12" height="36" fill="var(--surface)" stroke="currentColor" stroke-width="1.5"/>
+        <line x1="860" y1="506" x2="860" y2="740" stroke="var(--wgnd)" stroke-width="2"/>
+        <text x="872" y="486" font-size="11">10 kΩ</text>
+        <text x="872" y="500" font-size="10" fill="var(--muted)">pull-down</text>
+        <circle cx="860" cy="740" r="4.5" fill="var(--wgnd)"/>
+
+        <!-- ===== 74HCT125 ===== -->
+        <rect x="900" y="290" width="120" height="110" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
+        <g font-size="11">
+          <text x="908" y="340">1A</text>
+          <text x="1014" y="340" text-anchor="end">1Y</text>
+          <text x="960" y="308" text-anchor="middle">VCC</text>
+          <text x="935" y="392" text-anchor="middle">GND</text>
+          <text x="985" y="392" text-anchor="middle">1OE</text>
+          <line x1="975" y1="380" x2="995" y2="380" stroke="currentColor"/>
+        </g>
+        <text x="960" y="360" text-anchor="middle" font-family="var(--f-display)" font-size="14" font-weight="600">74HCT125</text>
+        <text x="960" y="375" text-anchor="middle" font-size="10" fill="var(--muted)">gate 1, 5 V</text>
+        <line x1="960" y1="200" x2="960" y2="290" stroke="var(--w5v)" stroke-width="2.5"/>
+        <circle cx="960" cy="200" r="4.5" fill="var(--w5v)"/>
+        <line x1="935" y1="400" x2="935" y2="740" stroke="var(--wgnd)" stroke-width="2.5"/>
+        <polyline points="985,400 985,422 935,422" fill="none" stroke="var(--wgnd)" stroke-width="2"/>
+        <circle cx="935" cy="422" r="4" fill="var(--wgnd)"/>
+        <circle cx="935" cy="740" r="4.5" fill="var(--wgnd)"/>
+
+        <!-- ===== 1Y → 330Ω → DIN ===== -->
+        <line x1="1020" y1="336" x2="1035" y2="336" stroke="var(--wdata)" stroke-width="3"/>
+        <rect x="1035" y="330" width="40" height="12" fill="var(--surface)" stroke="currentColor" stroke-width="1.5"/>
+        <line x1="1075" y1="336" x2="1110" y2="336" stroke="var(--wdata)" stroke-width="3"/>
+        <text x="1055" y="322" text-anchor="middle" font-size="11">330 Ω</text>
+        <text x="1055" y="360" text-anchor="middle" font-size="10" fill="var(--wdata)" font-weight="600">5 V data</text>
+
+        <!-- ===== LED stick ===== -->
+        <polyline points="1095,200 1095,280 1110,280" fill="none" stroke="var(--w5v)" stroke-width="3"/>
+        <circle cx="1095" cy="200" r="4.5" fill="var(--w5v)"/>
+        <polyline points="1095,740 1095,500 1110,500" fill="none" stroke="var(--wgnd)" stroke-width="3"/>
+        <circle cx="1095" cy="740" r="4.5" fill="var(--wgnd)"/>
+        <text x="1155" y="238" text-anchor="middle" font-family="var(--f-display)" font-size="14" font-weight="600">8× WS2812</text>
+        <rect x="1110" y="250" width="90" height="290" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
+        <g font-size="10">
+          <text x="1116" y="284">4-7VDC</text>
+          <text x="1116" y="340" font-weight="600">DIN</text>
+          <text x="1116" y="504">GND</text>
+        </g>
+        <g stroke="currentColor" stroke-width="1.2">
+          <circle cx="1180" cy="280" r="9" fill="var(--lit)" stroke="var(--lit)"/>
+          <circle cx="1180" cy="310" r="9" fill="var(--surface)"/>
+          <circle cx="1180" cy="340" r="9" fill="var(--surface)"/>
+          <circle cx="1180" cy="370" r="9" fill="var(--surface)"/>
+          <circle cx="1180" cy="400" r="9" fill="var(--surface)"/>
+          <circle cx="1180" cy="430" r="9" fill="var(--surface)"/>
+          <circle cx="1180" cy="460" r="9" fill="var(--surface)"/>
+          <circle cx="1180" cy="490" r="9" fill="var(--surface)"/>
+        </g>
+        <g font-size="9" text-anchor="middle" fill="currentColor">
+          <text x="1180" y="283" fill="#1a1d1b">1</text><text x="1180" y="313">2</text><text x="1180" y="343">3</text><text x="1180" y="373">4</text><text x="1180" y="403">5</text><text x="1180" y="433">6</text><text x="1180" y="463">7</text><text x="1180" y="493">8</text>
+        </g>
+        <text x="1155" y="558" text-anchor="middle" font-size="10" fill="var(--muted)">DOUT end unused</text>
+
+        <!-- ===== Bulk cap ===== -->
+        <line x1="1240" y1="200" x2="1240" y2="462" stroke="var(--w5v)" stroke-width="2.5"/>
+        <line x1="1224" y1="462" x2="1256" y2="462" stroke="currentColor" stroke-width="3"/>
+        <path d="M1224 478 Q1240 468 1256 478" fill="none" stroke="currentColor" stroke-width="3"/>
+        <line x1="1240" y1="474" x2="1240" y2="740" stroke="var(--wgnd)" stroke-width="2.5"/>
+        <text x="1228" y="454" font-size="12" text-anchor="end">+</text>
+        <text x="1262" y="460" font-size="11">1000 µF</text>
+        <text x="1262" y="475" font-size="10" fill="var(--muted)">≥ 10 V</text>
+        <circle cx="1240" cy="200" r="4.5" fill="var(--w5v)"/>
+        <circle cx="1240" cy="740" r="4.5" fill="var(--wgnd)"/>
+        </g>
+      </svg>
