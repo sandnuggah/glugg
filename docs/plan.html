@@ -149,9 +149,9 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
 <div class="wrap">
 
 <header class="top">
-  <span class="eyebrow">Project plan · 30 Sep 2026 · rev 9</span>
+  <span class="eyebrow">Project plan · 1 Oct 2026 · rev 10</span>
   <h1>Glugg</h1>
-  <p class="lede">Glugg, Swedish for a small opening in a wall, keeps watch over the windows of your wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT window sensors and lights one LED per open window on an 8-LED strip. Your ESP32-H2 is its Thread radio. Sensor 1 gets LED 1, sensor 2 gets LED 2, in the order they are added.</p>
+  <p class="lede">Glugg, Swedish for a small opening in a wall, keeps watch over the windows of your wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT window sensors and lights one LED per open window on an 8-LED strip. Your ESP32-H2 is its Thread radio. Sensor 1 gets LED 1, sensor 2 gets LED 2, in the order they are added. The workshop has four rooms with about 30 windows each, so the finished system is one Glugg per room, each showing its own windows.</p>
   <div class="parts">
     <span class="chip">Mean Well RS-15-5 (or HDR-15-5)</span>
     <span class="chip">Waveshare ESP32-S3-Zero-N8R8 (new)</span>
@@ -167,6 +167,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
   <div class="row"><span>Design</span><p>The <b>ESP32-S3-Zero-N8R8</b> (8 MB flash, 8 MB PSRAM) runs the Matter controller: it pairs the sensors, keeps track of them and drives the LEDs. The <b>ESP32-H2-Zero</b> is reflashed as its Thread radio, and the two boards talk over two UART wires. Espressif tests exactly this pairing: an S3 with PSRAM running the controller plus a Thread border router, with an H2 as the radio.</p></div>
   <div class="row"><span>Sensor</span><p>MYGGBETT uses Matter over Thread only; nobody has found a way to pair it over Zigbee. It pairs over Bluetooth, so the S3 handles that, and after pairing it talks over Thread through the H2.</p></div>
   <div class="row"><span>Network</span><p>Fully offline, by your choice: no Wi-Fi and no network credentials on the device. The S3 therefore runs the Thread network's lookup service (SRP and DNS-SD) itself. Espressif's example doesn't do this, but an OpenThread simulation shows it works, and Matter points its lookups at the S3's own service without extra code.</p></div>
+  <div class="row"><span>Scale</span><p>Four rooms, about 30 windows each. Decided 1 Oct: <b>one Glugg unit per room</b>, each with its own S3, H2, Thread network and LED strip (one LED per window), instead of one central controller for all 120 sensors. Each unit then handles about 30 sensors, a modest step up from 8, and the rooms fail independently. The first unit is built and proven with 8 sensors first (Phases 2–4); scaling is Phase 6.</p></div>
   <div class="row"><span>Main risks</span><p>First, two open Espressif bug reports that show other IKEA devices from the same product line failing to pair over Bluetooth. Second, two parts of the offline lookup that only the real S3 can prove. Both are the first tests once the boards arrive.</p></div>
 </section>
 
@@ -630,7 +631,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <div class="state"><span class="px fail"></span><span><b>Thread radio not answering</b><br>All LEDs red for 3 s, then the S3 restarts. Check the UART wires and the H2's firmware.</span></div>
   </div>
   <div class="col">
-    <p class="muted" style="font-size:0.92rem">Removing a sensor frees its slot, and the next sensor you pair takes the lowest free slot. The other sensors keep their LEDs. At most 8 sensors, one per LED. Slots are numbered 1–8 on the console, and LED 1 is the end nearest DIN. When a sleepy sensor's connection drops and comes back as part of normal operation, it gets a new 2-minute grace period, so routine reconnects don't flash blue.</p>
+    <p class="muted" style="font-size:0.92rem">Removing a sensor frees its slot, and the next sensor you pair takes the lowest free slot. The other sensors keep their LEDs. At most 8 sensors on the first unit, one per LED; room units will take about 30 (Phase 6). Slots are numbered 1–8 on the console, and LED 1 is the end nearest DIN. When a sleepy sensor's connection drops and comes back as part of normal operation, it gets a new 2-minute grace period, so routine reconnects don't flash blue.</p>
   </div>
 </section>
 
@@ -723,6 +724,19 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
       <h3>Enclosure and handover</h3>
       <p>Mount the supply in its enclosure, strain-relieve the mains lead, and tidy the low-voltage side. Write a README covering pairing, removal and reflashing. With 8 MB of flash, over-the-air updates become an option later.</p>
     </div></div>
+    <div class="phase"><span class="n">6</span><div class="body">
+      <h3>One unit per room</h3>
+      <p>Build one Glugg per room, each for about 30 windows. Same firmware and wiring, with these changes, sized from the memory each sensor used in Phase 4:</p>
+      <ul>
+        <li><b>Slots and LEDs:</b> about 30 slots, and a WS2812 strip of about 30 LEDs in place of the 8-LED stick, on the same GPIO13 and 74HCT125. All 30 lit amber draws about 0.2 A, so the supply stays the same. The saved slot table gets a new version and is migrated.</li>
+        <li><b>Thread:</b> the S3's child table goes from 10 to at least 32. One room is very likely within direct radio range of its S3, so no extra Thread router is needed; check each sensor's link quality with <code>matter esp ot_cli child table</code>.</li>
+        <li><b>Matter:</b> the secure session pool goes from 17 to about 40, with the exchange and handshake pools to match. Reconnects after a power cut are staggered, about 8 sensors at a time, so recovery takes a minute or two instead of seconds.</li>
+        <li><b>Pairing:</b> <code>pair &lt;code&gt; &lt;slot&gt;</code>, so window 14 can be LED 14 instead of the lowest free slot.</li>
+        <li><b>Neighbours:</b> each unit runs its own Thread network with its own keys. Two rooms may pick the same channel; they only share airtime, which is tiny at this load.</li>
+      </ul>
+      <p class="status"><span class="sev med">Not started</span><span>Decided on 1 Oct 2026. Comes after Phase 4.</span></p>
+      <p class="gate"><b>Checkpoint</b>One room unit runs 30 sensors for 48 hours with no stuck LEDs, and recovers every sensor on its own after a power cut. Then build the other three.</p>
+    </div></div>
   </div>
 </section>
 
@@ -780,6 +794,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <div class="decision"><h3>Decided · Fully offline</h3><p>No Wi-Fi. The S3 runs the Thread network and its lookup service on its own. Phase 1 proves this before anything else.</p></div>
     <div class="decision"><h3>Decided · Hardware</h3><p>ESP32-S3-Zero-N8R8 as the Matter controller, with the ESP32-H2-Zero as its Thread radio. The ESP32-C5-Zero was ruled out: no PSRAM, and an open bug that stops new devices joining Thread while Bluetooth is running.</p></div>
     <div class="decision"><h3>Decided · LED colours and states</h3><p>Amber for open, off for closed, a green pulse while pairing, and a dim blue blink when a sensor hasn't been heard from. Added later: a white sweep while starting up, dim white until a sensor's first report, and red when the Thread radio doesn't answer.</p></div>
+    <div class="decision"><h3>Decided · One unit per room</h3><p>Four rooms with about 30 windows each get four independent Gluggs, each showing its own windows with one LED per window. One central controller for all 120 sensors was ruled out: no one is known to run esp-matter's controller at that size, it would need a Thread router in every room, and one fault would blind every room.</p></div>
     <div class="decision"><h3>Decided · Pairing from the USB serial console</h3><p>Connect a computer to the S3 and type <code>pair &lt;11-digit code&gt;</code>.</p></div>
   </div>
   <div class="col">
