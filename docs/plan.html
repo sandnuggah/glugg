@@ -149,7 +149,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
 <div class="wrap">
 
 <header class="top">
-  <span class="eyebrow">Project plan · 1 Oct 2026 · rev 10</span>
+  <span class="eyebrow">Project plan · 5 Oct 2026 · rev 11</span>
   <h1>Glugg</h1>
   <p class="lede">Glugg, Swedish for a small opening in a wall, keeps watch over the windows of your wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT window sensors and lights one LED per open window on an 8-LED strip. Your ESP32-H2 is its Thread radio. Sensor 1 gets LED 1, sensor 2 gets LED 2, in the order they are added. The workshop has four rooms with about 30 windows each, so the finished system is one Glugg per room, each showing its own windows.</p>
   <div class="parts">
@@ -168,7 +168,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
   <div class="row"><span>Sensor</span><p>MYGGBETT uses Matter over Thread only; nobody has found a way to pair it over Zigbee. It pairs over Bluetooth, so the S3 handles that, and after pairing it talks over Thread through the H2.</p></div>
   <div class="row"><span>Network</span><p>Fully offline, by your choice: no Wi-Fi and no network credentials on the device. The S3 therefore runs the Thread network's lookup service (SRP and DNS-SD) itself. Espressif's example doesn't do this, but an OpenThread simulation shows it works, and Matter points its lookups at the S3's own service without extra code.</p></div>
   <div class="row"><span>Scale</span><p>Four rooms, about 30 windows each. Decided 1 Oct: <b>one Glugg unit per room</b>, each with its own S3, H2, Thread network and LED strip (one LED per window), instead of one central controller for all 120 sensors. Each unit then handles about 30 sensors, a modest step up from 8, and the rooms fail independently. The first unit is built and proven with 8 sensors first (Phases 2–4); scaling is Phase 6.</p></div>
-  <div class="row"><span>Main risks</span><p>First, two open Espressif bug reports that show other IKEA devices from the same product line failing to pair over Bluetooth. Second, two parts of the offline lookup that only the real S3 can prove. Both are the first tests once the boards arrive.</p></div>
+  <div class="row"><span>Main risks</span><p>First, two open Espressif bug reports that show other IKEA devices from the same product line failing to pair over Bluetooth. The likely cause is now found and fixed in the firmware build, but only a real pairing can confirm it. Second, two parts of the offline lookup that only the real S3 can prove. Both are the first tests once the boards arrive.</p></div>
 </section>
 
 <!-- ============ WIRING ============ -->
@@ -646,7 +646,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <table>
       <thead><tr><th>Level</th><th>Risk</th><th>Evidence</th><th>How the plan handles it</th></tr></thead>
       <tbody>
-        <tr><td><span class="sev high">High</span></td><td>IKEA sensors failing to pair over Bluetooth with Espressif's controller</td><td>Two open esp-matter issues (#1772, #1532) report other IKEA devices from the same product line failing with <code>error: ac</code>, one of them on an S3 + H2 board. The same devices pair fine with the Linux reference tool (chip-tool).</td><td><b>Still open.</b> This is the first test in Phase 2, once the S3 arrives. If it reproduces, debug Espressif's Bluetooth settings (this bug happens right after the two sides agree on packet size). <b>Last-resort fallback:</b> during pairing only, the S3 opens a temporary Wi-Fi hotspot so chip-tool on a computer can do the Bluetooth step. The S3 then adds itself as a second controller over the network, and the hotspot closes. This is untested.</td></tr>
+        <tr><td><span class="sev high">High</span></td><td>IKEA sensors failing to pair over Bluetooth with Espressif's controller</td><td>Two open esp-matter issues (<a href="https://github.com/espressif/esp-matter/issues/1772">#1772</a>, <a href="https://github.com/espressif/esp-matter/issues/1532">#1532</a>) report IKEA devices from the same product line (TIMMERFLOTTE, KLIPPBOK, BILRESA) and Aqara devices failing with <code>error: ac</code>, on stock S3 + H2 boards. The same devices pair fine with the Linux reference tool (chip-tool). Espressif hasn't replied.</td><td><b>Likely fixed, unconfirmed.</b> Traced on 5 Oct to the moment right after the Bluetooth link comes up. These sensors agree on a packet size themselves before Espressif's stack tells Matter the link is up. Matter then tries to agree on it again, the stack says “already done”, and Matter treats that as a fatal error. A two-line patch to the Matter SDK accepts “already done”, and the firmware is built with it (<code>patches/</code> in the project). Pairing the first MYGGBETT in Phase 2 confirms it. If it still fails, the log now names the real error code. <b>Last-resort fallback:</b> during pairing only, the S3 opens a temporary Wi-Fi hotspot so chip-tool on a computer can do the Bluetooth step. The S3 then adds itself as a second controller over the network, and the hotspot closes. This is untested.</td></tr>
         <tr><td><span class="sev med">Medium</span></td><td>Looking up sensors with no Wi-Fi</td><td>Espressif's controller and border router setup looks devices up through Wi-Fi, and its config turns off the Thread-side lookup clients. Offline, the S3 has to run the lookup service itself.</td><td><b>Passed in simulation</b> (4 runs, 17 of 17 checks, same OpenThread version as the S3): the S3 finds a sleepy sensor through its own lookup service, and sensors re-register within 1–8 s after the S3 reboots. Matter points its lookups at the S3 automatically. <b>Still to prove on the S3:</b> the lookup query to its own address passes through the ESP's IP stack (lwIP) and relies on its loopback, and border router mode must run with Wi-Fi compiled out (it already builds). Fallback unchanged: a small custom resolver that reads the SRP server's table directly.</td></tr>
         <tr><td><span class="sev low">Resolved</span></td><td>Certificate check needs IKEA's root certificate</td><td>The default trust store holds test certificates only.</td><td>Done. IKEA's root certificate (<i>IKEA of Sweden Matter PAA G1</i>, vendor ID 0x117C, valid until 2099) is in the Matter certificate registry. The firmware bundles it with all 72 production root certificates and leaves Matter's test certificates out.</td></tr>
         <tr><td><span class="sev med">Medium</span></td><td>The built-in subscription gives up after 2 failed retries</td><td>Hard-coded in esp-matter. Home Assistant users see MYGGBETT subscriptions drop.</td><td><b>Handled in the firmware, untested on hardware.</b> Its own subscriptions on Matter's lower-level API: unlimited retries with backoff (10 s doubling to 5 min), a resubscribe to every sensor once the network is up after boot, keep-alive reports counted as signs of life, and the “not heard from” LED state</td></tr>
@@ -701,7 +701,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <div class="phase"><span class="n">2</span><div class="body">
       <h3>Pair one MYGGBETT</h3>
       <p>Load IKEA's root certificate. Pair one sensor from the console with <code>pair &lt;code&gt;</code>, then check that its subscription to StateValue on endpoint 1 comes up.</p>
-      <p class="status"><span class="sev med">Waiting for the S3</span><span>The firmware for this step is written and builds, with IKEA's root certificate bundled.</span></p>
+      <p class="status"><span class="sev med">Waiting for the S3</span><span>The firmware for this step is written and builds, with IKEA's root certificate bundled and the Bluetooth pairing fix applied.</span></p>
       <p class="gate"><b>Checkpoint</b>Pairing succeeds and opening and closing the window shows up within a few seconds. If pairing fails with <code>error: ac</code>, stop and debug that before going any further.</p>
     </div></div>
     <div class="phase"><span class="n">3</span><div class="body">
@@ -768,6 +768,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
         <tr><td>Matter's default limits allow 8 open exchanges and 4 handshakes at once.</td><td>After a reboot, 8 sleepy sensors reconnect at the same time, so the limits are raised to 20 and 10.</td></tr>
         <tr><td>One row of the pairing-code check-digit table was wrong, and the tests used the same table.</td><td>About 1.7% of real codes would have been rejected as typos. Fixed, and the tests now check against the Matter SDK's own algorithm.</td></tr>
         <tr><td>A random Thread channel is fixed for good once sensors are paired.</td><td>On first boot the S3 listens on all 16 channels and picks the quietest.</td></tr>
+        <tr><td>As the Bluetooth central, Espressif's stack tells Matter about a new connection only after two extra round trips. Sensors that negotiate the packet size themselves finish that first, and Matter then fails with <code>error: ac</code> on its own attempt.</td><td>The likely cause of the IKEA pairing bug (#1772, #1532), still unfixed upstream. A local patch to the Matter SDK accepts the size the sensor already agreed. It's kept in <code>patches/</code> and has to be re-applied after an SDK update. Confirmed only once a MYGGBETT pairs.</td></tr>
         <tr><td>esp-matter's installer fails on Python 3.13 (Debian 13) because of a conflicting version pin.</td><td>A one-line local fix on the build machine. Re-apply it after re-cloning esp-matter.</td></tr>
       </tbody>
     </table>
@@ -780,6 +781,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
       <li><code>firmware/components/led_pattern</code>: the LED colours and timings</li>
       <li><code>firmware/led_test</code>: the Phase 0 LED test for either board</li>
       <li><code>sim/phase1_offline_lookup.py</code>: the Phase 1 simulation test</li>
+      <li><code>patches/</code>: local fixes to the Matter SDK, with how to re-apply them</li>
     </ul>
   </div>
 </section>
