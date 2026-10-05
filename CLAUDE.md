@@ -56,7 +56,9 @@ Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the control
      - The DNS query to the S3's own ML-EID goes through lwIP (`PLATFORM_UDP`), so it needs `CONFIG_LWIP_NETIF_LOOPBACK=y`.
      - `CONFIG_OPENTHREAD_BORDER_ROUTER` (needed for the SRP and DNS-SD servers) must work with Wi-Fi compiled out. It **builds** in `firmware/controller`, which needed an mdns link fix (see its README). Runtime is unproven.
    - Fallback: a custom resolver that reads the SRP server's table (`otSrpServerGetNextHost` / `otSrpServerHostGetAddresses`).
-2. **IKEA BLE commissioning bug:** `Disabling CHIPoBLE service due to error: ac` (esp-matter #1772, #1532, both still open).
+2. **IKEA BLE commissioning bug:** `Disabling CHIPoBLE service due to error: ac` (esp-matter #1772, #1532, both still open; IKEA TIMMERFLOTTE, KLIPPBOK, BILRESA and Aqara devices reported).
+   - **Likely cause found and patched locally (2026-10-05), unconfirmed until Phase 2:** NimBLE reports the central's connection late, after the peripheral has already exchanged the ATT MTU, so Matter's own `ble_gattc_exchange_mtu()` gets `BLE_HS_EALREADY`, which it turns into `CHIP_ERROR_INTERNAL` (0xac). See `patches/README.md`.
+   - If pairing still fails, the log now shows `BLE MTU exchange failed: <code>`. If it works, offer to post the analysis on both issues and a PR upstream (ask the user first).
 3. **Resubscription:** esp-matter's `k_max_resubscribe_retries = 2`. **Implemented, still to be proven in the Phase 4 soak:** `firmware/controller/main/sensor_link.cpp` keeps its own subscriptions with auto-resubscribe off, and `firmware/components/app_core/sensor_mgr.c` retries with unlimited backoff (10 s → 5 min) and sets the "not heard from" state.
 
 ## Work phases
@@ -88,7 +90,9 @@ Keep app logic (slots, LED state mapping, backoff, command parsing) free of Matt
 
 - This VM `baggio-dev` (Debian 13, Python 3.13, 4 cores, 8 GB RAM + 6 GB swap, 40 GB disk) is the build machine. No boards are attached to it.
 - Toolchains live in `~/esp/esp-idf` and `~/esp/esp-matter`. Load them with `. ~/esp/esp-idf/export.sh && . ~/esp/esp-matter/export.sh`. esp-matter was installed with `--no-host-tool`.
-- **Local patch:** in `~/esp/esp-matter/connectedhomeip/connectedhomeip/scripts/setup/constraints.txt`, `typing-extensions` is raised from 4.8.0 to 4.15.0. Without it, esp-matter's `install.sh` fails on Python 3.13. Re-apply it after any re-clone or submodule update.
+- **Local patches** to the SDK, both in `~/esp/esp-matter/connectedhomeip/connectedhomeip`. Re-apply them after any re-clone or submodule update:
+  - `scripts/setup/constraints.txt`: `typing-extensions` is raised from 4.8.0 to 4.15.0. Without it, esp-matter's `install.sh` fails on Python 3.13.
+  - `src/platform/ESP32/nimble/BLEManagerImpl.cpp`: the IKEA BLE pairing fix (Risk 2). Kept as `patches/connectedhomeip-ble-mtu-ealready.patch`; apply with `git -C ~/esp/esp-matter/connectedhomeip/connectedhomeip apply ~/glugg/patches/connectedhomeip-ble-mtu-ealready.patch`.
 - The OpenThread simulation (`ot-cli-ftd`, built from ESP-IDF's bundled OpenThread) is at `~/esp/ot-sim`.
 - The boards plug into the user's Mac. To flash from the VM, either copy the binaries to the Mac and use `esptool`, or run `esp_rfc2217_server.py` on the Mac and use `idf.py -p rfc2217://<mac-ip>:4000 flash monitor`.
 - Limit build parallelism if the build runs out of memory. Each compile job needs about 1–1.5 GB.

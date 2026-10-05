@@ -1,0 +1,27 @@
+diff --git a/src/platform/ESP32/nimble/BLEManagerImpl.cpp b/src/platform/ESP32/nimble/BLEManagerImpl.cpp
+index 5a042633..bed38010 100644
+--- a/src/platform/ESP32/nimble/BLEManagerImpl.cpp
++++ b/src/platform/ESP32/nimble/BLEManagerImpl.cpp
+@@ -1699,12 +1699,17 @@ exit:
+ CHIP_ERROR BLEManagerImpl::HandleGAPConnect(struct ble_gap_event * gapEvent)
+ {
+ #ifdef CONFIG_ENABLE_ESP32_BLE_CONTROLLER
+-    int rc;
+-
+-    rc = ble_gattc_exchange_mtu(gapEvent->connect.conn_handle, NULL, NULL);
+-    if (rc != 0)
++    if (gapEvent->connect.status == 0)
+     {
+-        return CHIP_ERROR_INTERNAL;
++        // As central, NimBLE reports the connection only after reading the peer's features and version. A peripheral
++        // that starts its own MTU exchange right away has finished it by then, and NimBLE refuses a second one with
++        // BLE_HS_EALREADY. The MTU is set either way, so carry on (seen with IKEA and Aqara Thread devices).
++        int rc = ble_gattc_exchange_mtu(gapEvent->connect.conn_handle, NULL, NULL);
++        if (rc != 0 && rc != BLE_HS_EALREADY)
++        {
++            ChipLogError(DeviceLayer, "BLE MTU exchange failed: %d", rc);
++            return CHIP_ERROR_INTERNAL;
++        }
+     }
+ 
+     return HandleGAPCentralConnect(gapEvent);

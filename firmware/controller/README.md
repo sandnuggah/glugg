@@ -119,4 +119,4 @@ matter esp ot_cli dns config        # Server should be this node's ML-EID, port 
 
 The log should show `Thread network and lookup service are up`, and the LEDs should stop sweeping. Also check once whether a direct USB-C cable from the Mac attaches while the supply is already on.
 
-Then `pair` one MYGGBETT and watch the log for the attestation and subscription results. Also run the checks that the simulation couldn't; see "What the simulation does not prove" in `sim/README.md`.
+Then `pair` one MYGGBETT and watch the log for the attestation and subscription results. The build needs the BLE patch in `../../patches` applied to the SDK, the fix for esp-matter #1772/#1532. A healthy pairing logs `BLE GAP connection established` and `GATT discovery complete` right after `exchange mtu`. If it fails there instead, note the code in `BLE MTU exchange failed: <code>`. Also run the checks that the simulation couldn't; see "What the simulation does not prove" in `sim/README.md`.
