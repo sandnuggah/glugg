@@ -149,7 +149,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
 <div class="wrap">
 
 <header class="top">
-  <span class="eyebrow">Project plan · 5 Oct 2026 · rev 11</span>
+  <span class="eyebrow">Project plan · 5 Oct 2026 · rev 12</span>
   <h1>Glugg</h1>
   <p class="lede">Glugg, Swedish for a small opening in a wall, keeps watch over the windows of your wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT window sensors and lights one LED per open window on an 8-LED strip. Your ESP32-H2 is its Thread radio. Sensor 1 gets LED 1, sensor 2 gets LED 2, in the order they are added. The workshop has four rooms with about 30 windows each, so the finished system is one Glugg per room, each showing its own windows.</p>
   <div class="parts">
@@ -797,7 +797,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <div class="decision"><h3>Decided · Hardware</h3><p>ESP32-S3-Zero-N8R8 as the Matter controller, with the ESP32-H2-Zero as its Thread radio. The ESP32-C5-Zero was ruled out: no PSRAM, and an open bug that stops new devices joining Thread while Bluetooth is running.</p></div>
     <div class="decision"><h3>Decided · LED colours and states</h3><p>Amber for open, off for closed, a green pulse while pairing, and a dim blue blink when a sensor hasn't been heard from. Added later: a white sweep while starting up, dim white until a sensor's first report, and red when the Thread radio doesn't answer.</p></div>
     <div class="decision"><h3>Decided · One unit per room</h3><p>Four rooms with about 30 windows each get four independent Gluggs, each showing its own windows with one LED per window. One central controller for all 120 sensors was ruled out: no one is known to run esp-matter's controller at that size, it would need a Thread router in every room, and one fault would blind every room.</p></div>
-    <div class="decision"><h3>Decided · Pairing from the USB serial console</h3><p>Connect a computer to the S3 and type <code>pair &lt;11-digit code&gt;</code>.</p></div>
+    <div class="decision"><h3>Decided · Pairing from the USB serial console</h3><p>Connect a computer to the S3 and type <code>pair &lt;11-digit code&gt;</code>. Pairing from an iPhone is parked (below).</p></div>
   </div>
   <div class="col">
     <h3>Chosen during the build</h3>
@@ -807,6 +807,13 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <div class="decision"><h3>Console commands</h3><p>Slots are numbered 1–8. <code>factory-reset</code> needs the word <code>confirm</code>: it asks each sensor to leave, waits until they all answer (at most 2 minutes, since sleepy sensors answer when they wake), erases the slots, the Matter fabric and the Thread network, and reboots. <code>identify &lt;slot&gt;</code> makes the sensor itself blink for 10 s; the stick doesn't change.</p></div>
     <div class="decision"><h3>Timings</h3><p>Blue after 2 minutes without a connection. Retries every 10 s, doubling to at most 5 minutes. Subscriptions ask for a report at least every 5 minutes (a sleepy sensor may choose longer). Pairing gives up after 5 minutes.</p></div>
     <div class="decision"><h3>Certificates</h3><p>The firmware trusts every production root certificate in the CSA's registry, not only IKEA's, and none of Matter's test certificates.</p></div>
+  </div>
+  <div class="col">
+    <h3>Parked for later</h3>
+    <p class="muted">Explored but not decided. Revisit once the first MYGGBETT pairs (Phase 2), and before the room units (Phase 6).</p>
+  </div>
+  <div class="decisions">
+    <div class="decision"><h3>Parked · Pairing from your iPhone</h3><p>For convenience: scan a sensor's QR code instead of typing its code on a computer. The S3 would get a Bluetooth console with the same commands as the USB one, kept alongside it, and open only for a few minutes after you press its BOOT button. On the phone, start with a ready-made Bluetooth terminal app (Bluefruit Connect or nRF Toolbox), and perhaps later a small app of your own that scans the QR code and, for the room units, lets you pick the window. Glugg stays offline: no Wi-Fi and no Apple Home, and Safari can't do Bluetooth from a web page. The main risk is the S3 talking to your phone and to the sensor over Bluetooth at the same time.</p></div>
   </div>
 </section>
 
