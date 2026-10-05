@@ -84,6 +84,11 @@ Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the control
    - `pair <code> <slot>`, so a window's LED position is chosen, not "lowest free".
    - Probably no Thread router needed inside one room; check link quality with `matter esp ot_cli child table`.
 
+**Parked: pairing from the user's iPhone (for convenience; nothing decided).** Raise it again once Phase 2 pairs a MYGGBETT, and before Phase 6.
+- The idea: a Bluetooth console on the S3 (Nordic UART service layout, added through the ESP32 BLE manager's `ConfigureExtraServices`, with its own advertising and GAP handler) next to the USB console, opened for a few minutes by pressing the S3's BOOT button.
+- The phone side, in steps: a generic app (Bluefruit Connect / nRF Toolbox UART) first, then perhaps a SwiftUI app that scans the sensor's `MT:` QR code. Glugg would accept `pair MT:…`.
+- Safari has no Web Bluetooth. Apple Home is out (offline). Main risk: the S3 being peripheral to the phone and central to the sensor at the same time.
+
 Keep app logic (slots, LED state mapping, backoff, command parsing) free of Matter and ESP dependencies behind small interfaces, so it can be unit-tested on the host.
 
 ## Environment
