@@ -16,7 +16,7 @@ Glugg (Swedish for a small opening in a wall) watches the windows of the user's 
 | Area | Decision |
 |---|---|
 | Controller | Waveshare **ESP32-S3-Zero-N8R8** (8 MB flash, 8 MB PSRAM, probably octal; verify with `esptool.py flash_id` on arrival) |
-| Thread radio | Waveshare **ESP32-H2-Zero**, flashed with ESP-IDF `ot_rcp` and connected to the S3 over UART |
+| Thread radio | Waveshare **ESP32-H2-Zero**, flashed with ESP-IDF `ot_rcp` (`firmware/rcp`) and connected to the S3 over UART |
 | Network | **Fully offline, no Wi-Fi.** The S3 runs the Thread network plus the SRP and DNS-SD servers itself. |
 | Pairing | USB serial console on the S3: `pair <11-digit code>` |
 | LEDs | open = warm amber at about 25% brightness · closed or empty slot = off · pairing into slot = slow green pulse · sensor not heard from = dim blue blink · starting up = a dim white dot sweeping back and forth across all 8 LEDs until the Thread network and Matter's lookup service are up · paired sensor that hasn't reported yet (since boot or pairing) = steady dim white, until it reports or the blue blink takes over after 2 min · Thread radio (H2) not responding = all LEDs red for a few seconds, then the S3 restarts |
@@ -64,7 +64,7 @@ Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the control
 ## Work phases
 
 0. **Toolchain + hardware check.** Install ESP-IDF 5.5.5 and esp-matter v1.6. Run an LED test on real hardware.
-   - **Toolchain installed. LED test firmware written (`firmware/led_test`), not yet run on hardware.**
+   - **Toolchain installed. Parts arrived 2026-10-06.** LED test firmware (`firmware/led_test`) and the H2 radio firmware (`firmware/rcp`, ESP-IDF's `ot_rcp` from the same tree, UART0 460800 on GPIO23/24) are built, not yet run on hardware.
 1. **Offline Thread network + lookup service.**
    - **Passed in simulation on 2026-09-30** (`sim/README.md`). The S3-only checks under Risk 1 happen in Phase 2.
    - Before the S3 arrives, prove it in the OpenThread POSIX simulation: `./script/cmake-build simulation`, then run `ot-cli-ftd` nodes.
