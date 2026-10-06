@@ -48,7 +48,9 @@ Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the control
 - Matter over Thread, commissioned over BLE. VID `0x117C`, PID `0x8007`, firmware 1.0.9–1.1.6.
 - It is a SIT ICD sleepy end device **without** the Check-In protocol, so the controller must keep a subscription alive.
 - Measured 2026-10-07: it picks a subscription **max interval of 1800 s** (our 300 s ceiling is only a request) and an MRP idle interval of 17 s. State changes still arrive within a second, but a dead or out-of-range sensor shows "not heard from" only after ~33 min (Matter's 1880 s liveness timeout + our 2-min grace).
-- After joining, and after the S3 reboots, it registers with the S3's SRP server a little after Matter's first lookup. Matter then waits its full lookup timeout (`CHIP_CONFIG_ADDRESS_RESOLVE_MAX_LOOKUP_TIME_MS`, 45 s by default) before retrying, so pairing took ~60 s and a reboot ~75 s until subscribed. A shorter timeout (~10 s) is a candidate improvement.
+- After joining, and after the S3 reboots, it registers with the S3's SRP server a little after Matter's first lookup (within 15 s of joining Thread). Each Matter lookup asks once and then waits its full timeout, `CHIP_CONFIG_ADDRESS_RESOLVE_MAX_LOOKUP_TIME_MS`. That is 15 s in `firmware/controller/main/matter_project_config.h`, down from the 45 s default. Pairing makes 3 lookup attempts, so don't go much lower.
+  - Measured 2026-10-07 with 15 s: `pair` → paired 30 s (was 60 s), → subscribed 46 s. Network up → subscribed after a reboot 42 s (was ~59 s).
+  - The rest is the sensor's sleep: each first message waits up to ~15 s for its next check-in.
 - Endpoint 1 is a Contact Sensor with the **BooleanState** cluster (`0x0045`). Subscribe to attribute `StateValue` (`0x0000`). **true = closed, false = open.** It sends no StateChange event.
 - Attestation needs IKEA's PAA certificate bundled in the trust store, because the device is offline. It's bundled as `firmware/controller/paa_cert/ikea_g1.der` (`CN=IKEA of Sweden Matter PAA G1`, vid 0x117C) along with every other production PAA on the DCL. See `paa_cert.md`.
 
