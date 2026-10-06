@@ -1,0 +1,15 @@
+diff --git a/src/lib/shell/MainLoopESP32.cpp b/src/lib/shell/MainLoopESP32.cpp
+index 04b74c8b..8f202d43 100644
+--- a/src/lib/shell/MainLoopESP32.cpp
++++ b/src/lib/shell/MainLoopESP32.cpp
+@@ -81,6 +81,10 @@ void Engine::RunMainLoop()
+             {
+                 linenoiseFree(line);
+             }
++            // With no USB host on the USB-Serial-JTAG console (powered from a charger or the 5V pin), reads fail at once
++            // (ESP-IDF IDF-14303) and linenoise returns an empty line. Without a pause this priority-5 task spins,
++            // starves the idle task and trips the task watchdog. Pressing Enter on a real console also lands here.
++            vTaskDelay(pdMS_TO_TICKS(50));
+             continue;
+         }
+         ShellLineArgs shellArgs(line, xTaskGetCurrentTaskHandle());

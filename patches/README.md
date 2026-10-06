@@ -4,20 +4,20 @@ Local fixes to the toolchain in `~/esp`. They live outside this repo, so re-appl
 
 | Patch | Applies to | Fixes |
 |---|---|---|
-| `connectedhomeip-ble-mtu-ealready.patch` | `~/esp/esp-matter/connectedhomeip/connectedhomeip` | IKEA (and Aqara) Thread devices failing to pair over BLE with `Disabling CHIPoBLE service due to error: ac` (esp-matter #1772, #1532). |
+| `connectedhomeip-shell-no-usb-host.patch` | `~/esp/esp-matter/connectedhomeip/connectedhomeip` | The S3 rebooting every ~30 s (endless white sweep) whenever no computer is on its USB port. |
 
 ```bash
-git -C ~/esp/esp-matter/connectedhomeip/connectedhomeip apply ~/glugg/patches/connectedhomeip-ble-mtu-ealready.patch
+for p in ~/glugg/patches/*.patch; do git -C ~/esp/esp-matter/connectedhomeip/connectedhomeip apply "$p"; done
 ```
 
-Check whether it's applied with `git apply --check -R` and the same paths: no output means it is.
+Only patches the firmware actually needs live here. Check whether one is applied with `git apply --check -R` and the same paths: no output means it is.
 
-## connectedhomeip-ble-mtu-ealready.patch
+## connectedhomeip-shell-no-usb-host.patch
 
-As the BLE central, ESP-IDF's NimBLE reports a new connection only after it has read the peer's supported features and version, two round trips over the air (`ble_gap.c`, `ble_gap_rx_rd_rem_ver_info_complete`). A peripheral that starts its own ATT MTU exchange as soon as the link is up has finished it by then, so NimBLE marks the MTU as exchanged (`ble_att_svr.c`, `BLE_L2CAP_CHAN_F_TXED_MTU`).
+The S3's console is on its USB-Serial-JTAG port. ESP-IDF treats that port as connected only while a USB host sends start-of-frame packets (`usb_serial_jtag_connection_monitor.c`). A charger in the USB-C port, or power on the 5V pin with the port empty, sends none. While "disconnected", reading the console fails at once instead of waiting (`usb_serial_jtag_vfs.c`, `usb_serial_jtag_read`, Espressif's `TODO: IDF-14303`), and `linenoise()` returns an empty line.
 
-Matter's `BLEManagerImpl::HandleGAPConnect` then starts its own exchange, gets `BLE_HS_EALREADY`, and turns it into `CHIP_ERROR_INTERNAL` (`0xac`) before GATT discovery starts. CHIPoBLE is disabled and the link dropped. chip-tool on Linux pairs the same devices because BlueZ accepts the MTU the peer already negotiated.
+Matter's console task (`src/lib/shell/MainLoopESP32.cpp`, `Engine::RunMainLoop`, priority 5, created by esp-matter's console) loops on `linenoise()` and treats an empty line as "try again" with no pause. So it spins, starves the idle task on its core, and with `CONFIG_ESP_TASK_WDT_PANIC=y` the task watchdog restarts the S3 every ~30 s. Without the panic setting it would silently burn a CPU core instead.
 
-The patch treats `BLE_HS_EALREADY` as success, only exchanges the MTU on a successful connection, and logs any other error code.
+The patch sleeps 50 ms after an empty line. With a computer attached the read blocks as usual, so typing is unaffected.
 
-**Status:** the diagnosis is from the source and the logs in the two issues. It is unconfirmed until a MYGGBETT pairs in Phase 2. If pairing still fails, the log now shows `BLE MTU exchange failed: <code>` with the real NimBLE error. Upstream `master` still has the original code (checked 2026-10-05).
+**Status:** seen 2026-10-07 with both boards on an IKEA USB-C charger (endless white sweep). Fixed the same day: on the same charger with the patched firmware, the sweep stops after ~20 s and the sensor works with no computer attached.

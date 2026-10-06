@@ -47,6 +47,8 @@ Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the control
 
 - Matter over Thread, commissioned over BLE. VID `0x117C`, PID `0x8007`, firmware 1.0.9–1.1.6.
 - It is a SIT ICD sleepy end device **without** the Check-In protocol, so the controller must keep a subscription alive.
+- Measured 2026-10-07: it picks a subscription **max interval of 1800 s** (our 300 s ceiling is only a request) and an MRP idle interval of 17 s. State changes still arrive within a second, but a dead or out-of-range sensor shows "not heard from" only after ~33 min (Matter's 1880 s liveness timeout + our 2-min grace).
+- After joining, and after the S3 reboots, it registers with the S3's SRP server a little after Matter's first lookup. Matter then waits its full lookup timeout (`CHIP_CONFIG_ADDRESS_RESOLVE_MAX_LOOKUP_TIME_MS`, 45 s by default) before retrying, so pairing took ~60 s and a reboot ~75 s until subscribed. A shorter timeout (~10 s) is a candidate improvement.
 - Endpoint 1 is a Contact Sensor with the **BooleanState** cluster (`0x0045`). Subscribe to attribute `StateValue` (`0x0000`). **true = closed, false = open.** It sends no StateChange event.
 - Attestation needs IKEA's PAA certificate bundled in the trust store, because the device is offline. It's bundled as `firmware/controller/paa_cert/ikea_g1.der` (`CN=IKEA of Sweden Matter PAA G1`, vid 0x117C) along with every other production PAA on the DCL. See `paa_cert.md`.
 
@@ -61,8 +63,8 @@ Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the control
      - The S3's SRP client picks its own server (`srp client server` = its ML-EID, port 53536). Network on channel 15. Ready ("Thread network and lookup service are up") 18.6 s after a reboot.
    - Fallback: a custom resolver that reads the SRP server's table (`otSrpServerGetNextHost` / `otSrpServerHostGetAddresses`).
 2. **IKEA BLE commissioning bug:** `Disabling CHIPoBLE service due to error: ac` (esp-matter #1772, #1532, both still open; IKEA TIMMERFLOTTE, KLIPPBOK, BILRESA and Aqara devices reported).
-   - **Pairing works with the local patch (first MYGGBETT paired 2026-10-06).** Not yet shown that the `BLE_HS_EALREADY` path was actually hit: the patch accepts it silently. **Likely cause found and patched locally (2026-10-05):** NimBLE reports the central's connection late, after the peripheral has already exchanged the ATT MTU, so Matter's own `ble_gattc_exchange_mtu()` gets `BLE_HS_EALREADY`, which it turns into `CHIP_ERROR_INTERNAL` (0xac). See `patches/README.md`.
-   - If pairing still fails, the log now shows `BLE MTU exchange failed: <code>`. If it works, offer to post the analysis on both issues and a PR upstream (ask the user first).
+   - **Not a problem for MYGGBETT (2026-10-07):** it pairs reliably with stock esp-matter code. A test build that logged the suspect path showed MYGGBETT never takes it.
+   - A suspected cause (NimBLE reporting the central's connection only after the peripheral's own ATT MTU exchange, so Matter's `ble_gattc_exchange_mtu()` gets `BLE_HS_EALREADY` and fails with 0xac) and a patch for it were removed at the user's request, because MYGGBETT doesn't need it. Both are in git history (`patches/`, commits c91d4a4 and e30da52) if a future sensor model shows `error: ac`. The diagnosis is unconfirmed; don't present it upstream as a fix.
 3. **Resubscription:** esp-matter's `k_max_resubscribe_retries = 2`. **Implemented, still to be proven in the Phase 4 soak:** `firmware/controller/main/sensor_link.cpp` keeps its own subscriptions with auto-resubscribe off, and `firmware/components/app_core/sensor_mgr.c` retries with unlimited backoff (10 s → 5 min) and sets the "not heard from" state.
 
 ## Work phases
@@ -102,9 +104,10 @@ Keep app logic (slots, LED state mapping, backoff, command parsing) free of Matt
 
 - This VM `baggio-dev` (Debian 13, Python 3.13, 4 cores, 8 GB RAM + 6 GB swap, 40 GB disk) is the build machine. No boards are attached to it.
 - Toolchains live in `~/esp/esp-idf` and `~/esp/esp-matter`. Load them with `. ~/esp/esp-idf/export.sh && . ~/esp/esp-matter/export.sh`. esp-matter was installed with `--no-host-tool`.
-- **Local patches** to the SDK, both in `~/esp/esp-matter/connectedhomeip/connectedhomeip`. Re-apply them after any re-clone or submodule update:
+- **Local patches** to the SDK, in `~/esp/esp-matter/connectedhomeip/connectedhomeip`. Re-apply them after any re-clone or submodule update:
   - `scripts/setup/constraints.txt`: `typing-extensions` is raised from 4.8.0 to 4.15.0. Without it, esp-matter's `install.sh` fails on Python 3.13.
-  - `src/platform/ESP32/nimble/BLEManagerImpl.cpp`: the IKEA BLE pairing fix (Risk 2). Kept as `patches/connectedhomeip-ble-mtu-ealready.patch`; apply with `git -C ~/esp/esp-matter/connectedhomeip/connectedhomeip apply ~/glugg/patches/connectedhomeip-ble-mtu-ealready.patch`.
+  - `src/lib/shell/MainLoopESP32.cpp`: Matter's console task spun (and the task watchdog rebooted the S3 every ~30 s) whenever no USB host is on the S3's port, which is normal use on the 5V pin. `patches/connectedhomeip-shell-no-usb-host.patch`.
+  - Apply it with the loop in `patches/README.md`. Only patches the project needs are kept (the user's rule).
 - The OpenThread simulation (`ot-cli-ftd`, built from ESP-IDF's bundled OpenThread) is at `~/esp/ot-sim`.
 - The boards plug into the user's Mac. To flash from the VM, either copy the binaries to the Mac and use `esptool`, or run `esp_rfc2217_server.py` on the Mac and use `idf.py -p rfc2217://<mac-ip>:4000 flash monitor`.
 - Limit build parallelism if the build runs out of memory. Each compile job needs about 1–1.5 GB.
