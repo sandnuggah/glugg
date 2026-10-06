@@ -149,11 +149,11 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
 <div class="wrap">
 
 <header class="top">
-  <span class="eyebrow">Project plan · 6 Oct 2026 · rev 13</span>
+  <span class="eyebrow">Project plan · 7 Oct 2026 · rev 14</span>
   <h1>Glugg</h1>
   <p class="lede">Glugg, Swedish for a small opening in a wall, keeps watch over the windows of your wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT window sensors and lights one LED per open window on an 8-LED strip. Your ESP32-H2 is its Thread radio. Sensor 1 gets LED 1, sensor 2 gets LED 2, in the order they are added. The workshop has four rooms with about 30 windows each, so the finished system is one Glugg per room, each showing its own windows.</p>
   <div class="parts">
-    <span class="chip">Mean Well RS-15-5 (or HDR-15-5)</span>
+    <span class="chip">USB-C charger + USB-C breakout (5 V)</span>
     <span class="chip">Waveshare ESP32-S3-Zero-N8R8 (new)</span>
     <span class="chip">Waveshare ESP32-H2-Zero</span>
     <span class="chip">8× WS2812 stick (4–7 VDC)</span>
@@ -163,12 +163,12 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
 
 <section class="verdict" aria-labelledby="v-h">
   <h2 id="v-h">Where this stands</h2>
-  <div class="row"><span>Progress</span><p>The toolchain is installed. The offline lookup, the plan's go/no-go question, <b>passed in simulation</b>. The full S3 firmware (pairing, subscriptions, LEDs and console) is written and builds, and its app logic passes its tests on the build machine. A review against the Matter, OpenThread and ESP-IDF sources then fixed several bugs that would have shown up on the first pairing, and added a startup animation. <b>Nothing has run on the boards yet</b>, but the parts arrived on 6 Oct and the firmware for all three steps of the hardware check is ready: the LED test, the H2's radio firmware and the S3's controller. The 1 kΩ resistor added to the parts list afterwards is still to buy.</p></div>
+  <div class="row"><span>Progress</span><p>The toolchain is installed. The offline lookup, the plan's go/no-go question, <b>passed in simulation</b>. The full S3 firmware (pairing, subscriptions, LEDs and console) is written and builds, and its app logic passes its tests on the build machine. A review against the Matter, OpenThread and ESP-IDF sources then fixed several bugs that would have shown up on the first pairing, and added a startup animation. <b>First hardware results, 6 Oct:</b> on the bench, the LED test runs, the S3 leads its own offline Thread network, and the first MYGGBETT paired over Bluetooth, reports open and closed, and stays paired after a reboot. Power is now a USB-C charger instead of the Mean Well mains supply. Next: a second sensor, then the final wiring and the 48-hour test.</p></div>
   <div class="row"><span>Design</span><p>The <b>ESP32-S3-Zero-N8R8</b> (8 MB flash, 8 MB PSRAM) runs the Matter controller: it pairs the sensors, keeps track of them and drives the LEDs. The <b>ESP32-H2-Zero</b> is reflashed as its Thread radio, and the two boards talk over two UART wires. Espressif tests exactly this pairing: an S3 with PSRAM running the controller plus a Thread border router, with an H2 as the radio.</p></div>
   <div class="row"><span>Sensor</span><p>MYGGBETT uses Matter over Thread only; nobody has found a way to pair it over Zigbee. It pairs over Bluetooth, so the S3 handles that, and after pairing it talks over Thread through the H2.</p></div>
-  <div class="row"><span>Network</span><p>Fully offline, by your choice: no Wi-Fi and no network credentials on the device. The S3 therefore runs the Thread network's lookup service (SRP and DNS-SD) itself. Espressif's example doesn't do this, but an OpenThread simulation shows it works, and Matter points its lookups at the S3's own service without extra code.</p></div>
+  <div class="row"><span>Network</span><p>Fully offline, by your choice: no Wi-Fi and no network credentials on the device. The S3 therefore runs the Thread network's lookup service (SRP and DNS-SD) itself. Espressif's example doesn't do this, but it works: first in an OpenThread simulation, then on the real S3 on 6 Oct. Matter points its lookups at the S3's own service without extra code.</p></div>
   <div class="row"><span>Scale</span><p>Four rooms, about 30 windows each. Decided 1 Oct: <b>one Glugg unit per room</b>, each with its own S3, H2, Thread network and LED strip (one LED per window), instead of one central controller for all 120 sensors. Each unit then handles about 30 sensors, a modest step up from 8, and the rooms fail independently. The first unit is built and proven with 8 sensors first (Phases 2–4); scaling is Phase 6.</p></div>
-  <div class="row"><span>Main risks</span><p>First, two open Espressif bug reports that show other IKEA devices from the same product line failing to pair over Bluetooth. The likely cause is now found and fixed in the firmware build, but only a real pairing can confirm it. Second, two parts of the offline lookup that only the real S3 can prove. Both are the first tests once the boards arrive.</p></div>
+  <div class="row"><span>Main risks</span><p>The two big ones are behind us. The IKEA Bluetooth pairing bug doesn't stop MYGGBETT with the patched firmware, and the offline lookup works on the real S3. What's left is proving long-term stability: several sensors, power cuts and battery swaps over 48 hours.</p></div>
 </section>
 
 <!-- ============ WIRING ============ -->
@@ -176,12 +176,12 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
   <div class="col">
     <span class="eyebrow">1 · Wiring</span>
     <h2 id="w-h">Wiring diagram</h2>
-    <p>One 5 V supply feeds both boards and the LED stick through a shared +5 V and GND rail. Each board gets its own Schottky diode, because both boards wire their 5V pin straight to their USB port. The diode keeps a computer's USB port from feeding the rail, but the rail's 5 V still reaches each board's USB-C socket. So connect the S3 to your computer through a USB hub or adapter that stays plugged into the computer (see Safety below). The S3's 3.3 V data line goes through a 5 V buffer to reach the LEDs. The H2 connects to the S3 with two crossed UART wires: each board's TX goes to the other board's RX, and the S3's TX wire has a 1 kΩ resistor at the S3 end.</p>
+    <p>One USB-C charger, through a small USB-C breakout board, feeds both boards and the LED stick through a shared +5 V and GND rail. Each board gets its own Schottky diode, because both boards wire their 5V pin straight to their USB port. The diode keeps a computer's USB port from feeding the rail, but the rail's 5 V still reaches each board's USB-C socket. So connect the S3 to your computer through a USB hub or adapter that stays plugged into the computer (see Safety below). The S3's 3.3 V data line goes through a 5 V buffer to reach the LEDs. The H2 connects to the S3 with two crossed UART wires: each board's TX goes to the other board's RX, and the S3's TX wire has a 1 kΩ resistor at the S3 end.</p>
   </div>
 
   <figure>
     <div class="diagram">
-      <svg viewBox="0 0 1320 780" role="img" aria-label="Wiring: mains to RS-15-5 L, N and FG. RS-15-5 +V and −V form a 5 V rail and a ground rail. The 5 V rail feeds the ESP32-H2-Zero and the ESP32-S3-Zero 5V pins through one 1N5817 diode each, the 74HCT125 VCC and the LED stick. H2 TX goes to S3 GPIO5, and S3 GPIO6 goes through a 1 kΩ resistor to H2 RX. S3 GPIO13 goes to 74HCT125 input 1A with a 10 kΩ pull-down; output 1Y goes through 330 Ω to the stick's DIN. A 1000 µF capacitor sits across the rails at the stick.">
+      <svg viewBox="0 0 1320 780" role="img" aria-label="Wiring: a USB-C charger feeds a USB-C breakout whose VBUS and GND form a 5 V rail and a ground rail. The 5 V rail feeds the ESP32-H2-Zero and the ESP32-S3-Zero 5V pins through one 1N5817 diode each, the 74HCT125 VCC and the LED stick. H2 TX goes to S3 GPIO5, and S3 GPIO6 goes through a 1 kΩ resistor to H2 RX. S3 GPIO13 goes to 74HCT125 input 1A with a 10 kΩ pull-down; output 1Y goes through 330 Ω to the stick's DIN. A 1000 µF capacitor sits across the rails at the stick.">
         <g font-size="12" fill="currentColor">
 
         <!-- ===== Rails ===== -->
@@ -190,40 +190,27 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
         <text x="400" y="190" fill="var(--w5v)" font-weight="500">+5 V rail</text>
         <text x="400" y="762" fill="var(--wgnd)" font-weight="500">GND rail (common ground)</text>
 
-        <!-- ===== PSU ===== -->
-        <rect x="30" y="30" width="340" height="100" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
-        <text x="48" y="60" font-family="var(--f-display)" font-size="16" font-weight="600">MEAN WELL RS-15-5</text>
-        <text x="48" y="82" fill="var(--muted)">85–264 VAC in · 5 V / 3 A out</text>
-        <text x="48" y="100" fill="var(--muted)">leave pot at 5.0 V</text>
-        <g font-size="11" text-anchor="middle">
-          <rect x="53" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="70" y="149">L</text>
-          <rect x="103" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="120" y="149">N</text>
-          <rect x="153" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="170" y="149">FG⏚</text>
-          <rect x="223" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="240" y="149">−V</text>
-          <rect x="273" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="290" y="149">+V</text>
-          <circle cx="340" cy="145" r="10" fill="var(--surface)" stroke="currentColor"/><line x1="334" y1="151" x2="346" y2="139" stroke="currentColor"/>
-          <text x="70" y="124" fill="var(--muted)" font-size="10">1</text>
-          <text x="120" y="124" fill="var(--muted)" font-size="10">2</text>
-          <text x="170" y="124" fill="var(--muted)" font-size="10">3</text>
-          <text x="240" y="124" fill="var(--muted)" font-size="10">4</text>
-          <text x="290" y="124" fill="var(--muted)" font-size="10">5</text>
-          <text x="340" y="124" fill="var(--muted)" font-size="10">ADJ</text>
+        <!-- ===== USB-C charger and breakout ===== -->
+        <rect x="30" y="60" width="122" height="60" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
+        <text x="42" y="86" font-family="var(--f-display)" font-size="14" font-weight="600">USB-C CHARGER</text>
+        <text x="42" y="106" fill="var(--muted)" font-size="11">GaN · Class II</text>
+        <line x1="152" y1="100" x2="190" y2="100" stroke="currentColor" stroke-width="3"/>
+        <rect x="186" y="90" width="14" height="20" rx="3" fill="var(--surface)" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="200" y="62" width="130" height="68" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
+        <text x="212" y="86" font-family="var(--f-display)" font-size="14" font-weight="600">USB-C BREAKOUT</text>
+        <text x="212" y="104" fill="var(--muted)" font-size="10">5.1 kΩ on CC1/CC2</text>
+        <text x="212" y="118" fill="var(--muted)" font-size="10">→ plain 5 V, no PD</text>
+        <g font-size="10" text-anchor="middle">
+          <rect x="223" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="240" y="149">GND</text>
+          <rect x="273" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="290" y="149">VBUS</text>
         </g>
 
-        <!-- ===== Mains ===== -->
-        <line x1="70" y1="160" x2="70" y2="250" stroke="var(--wL)" stroke-width="3"/>
-        <line x1="120" y1="160" x2="120" y2="250" stroke="var(--wN)" stroke-width="3"/>
-        <line x1="170" y1="160" x2="170" y2="250" stroke="var(--wPE)" stroke-width="3"/>
-        <line x1="170" y1="160" x2="170" y2="250" stroke="var(--lit)" stroke-width="3" stroke-dasharray="6 6" opacity="0.8"/>
-        <rect x="30" y="250" width="180" height="70" rx="4" fill="var(--high-soft)" stroke="var(--high)" stroke-width="1.5"/>
-        <g font-size="11" text-anchor="middle">
-          <text x="70" y="270">L</text><text x="120" y="270">N</text><text x="170" y="270">PE</text>
-        </g>
-        <text x="120" y="292" text-anchor="middle" font-weight="600" fill="var(--high)">230 V AC mains</text>
-        <text x="120" y="309" text-anchor="middle" font-size="11" fill="var(--high)">via fused switch</text>
-        <text x="30" y="372" font-size="11" fill="var(--muted)">earth (FG) is required</text>
-        <text x="30" y="388" font-size="11" fill="var(--muted)">M3 screws, 0.6–0.8 N·m</text>
-        <text x="30" y="404" font-size="11" fill="var(--muted)">≥ 0.75 mm² / AWG18</text>
+        <!-- ===== Checks before wiring the rail ===== -->
+        <text x="30" y="214" font-size="11" font-weight="600">Before wiring the rail:</text>
+        <text x="30" y="232" font-size="11" fill="var(--muted)">VBUS reads 5.0–5.2 V</text>
+        <text x="30" y="248" font-size="11" fill="var(--muted)">CC1/CC2 ≈ 5.1 kΩ to GND</text>
+        <text x="30" y="264" font-size="11" fill="var(--muted)">CC, D+, D− unconnected</text>
+        <text x="30" y="280" font-size="11" fill="var(--high)">never a 9–20 V PD board</text>
 
         <!-- ===== H2 5V feed with 1N5817 ===== -->
         <circle cx="300" cy="200" r="4.5" fill="var(--w5v)"/>
@@ -416,9 +403,6 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
       <span><i style="background:var(--wgnd)"></i>GND</span>
       <span><i style="background:var(--wuart)"></i>UART (solid H2→S3, dashed S3→H2)</span>
       <span><i style="background:var(--wdata)"></i>LED data</span>
-      <span><i style="background:var(--wL)"></i>Live</span>
-      <span><i style="background:var(--wN)"></i>Neutral</span>
-      <span><i style="background:repeating-linear-gradient(90deg,var(--wPE) 0 6px,var(--lit) 6px 12px)"></i>Protective earth</span>
     </div>
     <figcaption>Both boards are drawn from the top with the USB-C end up, so the pin positions match the real boards. The S3's GND wire hops over the H2's 5 V feed; the two wires are not connected. The 1 kΩ resistor in the S3 → H2 wire sits right at the S3's pin 6. LED 1, the pixel nearest DIN, is shown lit as an example of sensor 1 reporting open. Add a 100 nF ceramic capacitor between the 74HCT125's VCC (pin 14) and GND (pin 7), right at the chip.</figcaption>
   </figure>
@@ -427,11 +411,9 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <table>
       <thead><tr><th>From</th><th>To</th><th>Wire</th><th>Why / notes</th></tr></thead>
       <tbody>
-        <tr><td>Mains L</td><td>RS-15-5 terminal 1 · AC/L</td><td class="w"><span class="sw" style="background:var(--wL)"></span>brown</td><td>Through a fused switch or breaker</td></tr>
-        <tr><td>Mains N</td><td>RS-15-5 terminal 2 · AC/N</td><td class="w"><span class="sw" style="background:var(--wN)"></span>blue</td><td></td></tr>
-        <tr><td>Mains PE</td><td>RS-15-5 terminal 3 · FG ⏚</td><td class="w"><span class="sw" style="background:var(--wPE)"></span>green-yellow</td><td>Required: Mean Well says FG must be connected to earth. The HDR-15-5 in the parts list is Class II and has no FG terminal, so it needs no earth wire.</td></tr>
-        <tr><td>RS-15-5 terminal 5 · +V</td><td>+5 V rail</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red</td><td>Factory setting is 5.0 V; leave it there. The pot goes 4.75–5.5 V (4.5–5.5 V on the HDR-15-5), all within the stick's 4–7 V rating</td></tr>
-        <tr><td>RS-15-5 terminal 4 · −V</td><td>GND rail</td><td class="w"><span class="sw" style="background:var(--wgnd)"></span>black</td><td>Ground shared by every part</td></tr>
+        <tr><td>USB-C charger</td><td>USB-C breakout socket</td><td class="w">USB-C cable</td><td>Any USB-C charger. The breakout's 5.1 kΩ resistors on CC1 and CC2 ask for plain 5 V, and it has no chip that could ask for more. Don't use a USB-C PD trigger board unless it is fixed to 5 V: 9–20 V would destroy the stick and both boards.</td></tr>
+        <tr><td>Breakout <b>VBUS</b></td><td>+5 V rail</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red</td><td>Measure 5.0–5.2 V here with the charger plugged in before wiring the rail, well within the stick's 4–7 V rating</td></tr>
+        <tr><td>Breakout <b>GND</b></td><td>GND rail</td><td class="w"><span class="sw" style="background:var(--wgnd)"></span>black</td><td>Ground shared by every part. Leave CC1, CC2, D+ and D− unconnected.</td></tr>
         <tr><td>+5 V rail</td><td>1N5817 anode → cathode → S3-Zero <b>5V</b> (left pin 1)</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red</td><td>The S3-Zero's 5V pin is wired straight to USB VBUS, per Waveshare's schematic. The diode stops your computer's USB port from feeding the rail. It doesn't stop the rail's ~4.7 V from reaching the S3's USB-C socket, which is why the console cable goes through a hub or adapter.</td></tr>
         <tr><td>GND rail</td><td>S3-Zero <b>GND</b> (left pin 2)</td><td class="w"><span class="sw" style="background:var(--wgnd)"></span>black</td><td></td></tr>
         <tr><td>+5 V rail</td><td>1N5817 anode → cathode → H2-Zero <b>5V</b> (left pin 1)</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red</td><td>A separate diode, so the two boards' USB ports never get connected to each other</td></tr>
@@ -451,7 +433,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
 
   <div class="col" id="bom">
     <h3>Parts list (Electrokit)</h3>
-    <p>Every electronic component needed to build this from scratch. The MYGGBETT sensors come from IKEA, and the mechanical parts are listed under “Not in the list”. Paste the list into <a href="https://www.electrokit.com/en/quickorder">Electrokit's quick order form</a>, or import <code>bom.csv</code> from the project folder. Prices are Electrokit's list prices excluding VAT on 30 Sep 2026, and every item was in stock that day. The first seven lines are the order placed on 30 Sep (108.32 SEK). The next three replace parts you already had. The last line, the 1 kΩ UART resistor, was added after the order and is still to buy. Electrokit doesn't sell the RS-15-5, so the list uses the Mean Well HDR-15-5, which is wired the same way. The 74AHCT125N was out of stock, so the list uses the 74HCT125N instead. It has the same pinout and also reads 3.3 V as high when powered from 5 V. Don't substitute a plain 74HC125, which needs about 3.5 V.</p>
+    <p>Every electronic component needed to build this from scratch. The MYGGBETT sensors come from IKEA, and the mechanical parts are listed under “Not in the list”. Paste the list into <a href="https://www.electrokit.com/en/quickorder">Electrokit's quick order form</a>, or import <code>bom.csv</code> from the project folder. Prices are Electrokit's list prices excluding VAT on 30 Sep 2026, and every item was in stock that day. The first seven lines are the order placed on 30 Sep (108.32 SEK). The next two are parts you already had. The last line, the 1 kΩ UART resistor, was added after the order and is still to buy. Power comes from a USB-C charger through a USB-C breakout, which aren't in the list; the Mean Well mains supply of earlier revisions was dropped on 7 Oct. The 74AHCT125N was out of stock, so the list uses the 74HCT125N instead. It has the same pinout and also reads 3.3 V as high when powered from 5 V. Don't substitute a plain 74HC125, which needs about 3.5 V.</p>
   </div>
   <div class="table-wrap">
     <table>
@@ -468,10 +450,9 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
         <tr class="grp"><td colspan="5">Already owned · Electrokit parts for a build from scratch</td></tr>
         <tr><td class="mono">41032818</td><td>ESP32-H2 mini development board 4MB BLE/Zigbee/Thread (Waveshare ESP32-H2-Zero, no headers)</td><td>1</td><td>Thread radio</td><td style="text-align:right">63.20</td></tr>
         <tr><td class="mono">41012479</td><td>NeoPixel stick 8 RGB LEDs 51mm (Adafruit 1426)</td><td>1</td><td>The 8 window LEDs</td><td style="text-align:right">71.20</td></tr>
-        <tr><td class="mono">41021466</td><td>Mean Well HDR-15-5 power supply 5 V 2.4 A, DIN rail</td><td>1</td><td>5 V supply, instead of the RS-15-5</td><td style="text-align:right">132.00</td></tr>
         <tr class="grp"><td colspan="5">Added after the order · still to buy</td></tr>
         <tr><td class="mono">40811310</td><td>Resistor metal film 0.6 W 1% 1 kΩ</td><td>1</td><td>In series with S3 TX → H2 RX</td><td style="text-align:right">0.80</td></tr>
-        <tr><td></td><td><b>Total</b></td><td>12</td><td></td><td style="text-align:right"><b>375.52</b></td></tr>
+        <tr><td></td><td><b>Total</b></td><td>11</td><td></td><td style="text-align:right"><b>243.52</b></td></tr>
       </tbody>
     </table>
   </div>
@@ -486,7 +467,6 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
 41015538; 1
 41032818; 1
 41012479; 1
-41021466; 1
 40811310; 1</pre>
   </div>
   <script>
@@ -506,7 +486,8 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
       <h3>Not in the list</h3>
       <ul>
         <li>The MYGGBETT sensors, from IKEA</li>
-        <li>Fused switch or breaker, mains lead, and an enclosure for the supply. These depend on how you install it.</li>
+        <li>Power: any USB-C charger, and a plain USB-C breakout board with 5.1 kΩ resistors on CC1 and CC2 (not a PD trigger board)</li>
+        <li>An enclosure</li>
         <li>Pin headers: both boards come without them</li>
         <li>Hook-up wire, terminal blocks for the rails, and something to build on, such as perfboard, plus an optional DIP-14 socket for the 74HCT125</li>
       </ul>
@@ -514,19 +495,18 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <div class="fact">
       <h3>Alternatives</h3>
       <ul>
-        <li><b>No mains wiring:</b> a plug-in 5 V 2.4 A adapter (41019070, 79.20) and a panel DC jack (41015531, 22.40) replace the HDR-15-5. The jack's centre pin goes to the +5 V rail and its sleeve to GND. This is the simplest and safest option if the supply doesn't need to be built in.</li>
-        <li><b>Not recommended:</b> the Mean Well EPS-15-5 (41037509, 78.48) is an open-frame board with bare mains connections, and only 3 were in stock.</li>
         <li><b>Cheaper LEDs:</b> a generic 8-LED WS2812 stick (41016857, 31.20) is wired the same way (5 V, GND, data in). It isn't branded, and its pad labels may differ from the diagram.</li>
-        <li>Any of these supplies is enough: the whole build draws about 1 A at most.</li>
+        <li><b>Power:</b> any USB-C charger is enough. The whole build draws well under 1 A at 5 V.</li>
       </ul>
     </div>
     <div class="fact">
       <h3>Safety and order of work</h3>
       <ul>
-        <li>The RS-15-5 is built to go inside an enclosure: its mains terminals are exposed. The HDR-15-5's terminals are covered, but the same rule applies to both: keep the supply unplugged whenever you wire it. If you aren't comfortable wiring mains, have an electrician connect the mains side.</li>
+        <li>There's no mains wiring: the USB-C charger is double insulated and needs no earth. Unplug it whenever you change the wiring.</li>
         <li>Connect GND first, then +5 V, then the signal wires. Disconnect in reverse order.</li>
         <li>With the supply on, each board's USB-C socket already has about 4.7 V on it, and a computer's USB-C port may refuse to connect to a socket that is already powered. Connect the S3 through something that stays plugged into the computer, such as a USB hub, a dock, or a USB-C to USB-A adapter with an A-to-C cable, and plug and unplug only at the board end. Then the order doesn't matter. With a direct C-to-C cable, plug it in before switching the supply on.</li>
-        <li>Each diode drops about 0.3 V. The ~4.7 V left is fine for both boards, so leave the supply at 5.0 V.</li>
+        <li>Each diode drops about 0.3 V. The ~4.7–4.9 V left is fine for both boards.</li>
+        <li>If the charger cuts out the moment you plug it in, the 1000 µF capacitor's inrush is the likely cause; try 470 µF.</li>
       </ul>
     </div>
   </div>
@@ -646,8 +626,8 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <table>
       <thead><tr><th>Level</th><th>Risk</th><th>Evidence</th><th>How the plan handles it</th></tr></thead>
       <tbody>
-        <tr><td><span class="sev high">High</span></td><td>IKEA sensors failing to pair over Bluetooth with Espressif's controller</td><td>Two open esp-matter issues (<a href="https://github.com/espressif/esp-matter/issues/1772">#1772</a>, <a href="https://github.com/espressif/esp-matter/issues/1532">#1532</a>) report IKEA devices from the same product line (TIMMERFLOTTE, KLIPPBOK, BILRESA) and Aqara devices failing with <code>error: ac</code>, on stock S3 + H2 boards. The same devices pair fine with the Linux reference tool (chip-tool). Espressif hasn't replied.</td><td><b>Likely fixed, unconfirmed.</b> Traced on 5 Oct to the moment right after the Bluetooth link comes up. These sensors agree on a packet size themselves before Espressif's stack tells Matter the link is up. Matter then tries to agree on it again, the stack says “already done”, and Matter treats that as a fatal error. A two-line patch to the Matter SDK accepts “already done”, and the firmware is built with it (<code>patches/</code> in the project). Pairing the first MYGGBETT in Phase 2 confirms it. If it still fails, the log now names the real error code. <b>Last-resort fallback:</b> during pairing only, the S3 opens a temporary Wi-Fi hotspot so chip-tool on a computer can do the Bluetooth step. The S3 then adds itself as a second controller over the network, and the hotspot closes. This is untested.</td></tr>
-        <tr><td><span class="sev med">Medium</span></td><td>Looking up sensors with no Wi-Fi</td><td>Espressif's controller and border router setup looks devices up through Wi-Fi, and its config turns off the Thread-side lookup clients. Offline, the S3 has to run the lookup service itself.</td><td><b>Passed in simulation</b> (4 runs, 17 of 17 checks, same OpenThread version as the S3): the S3 finds a sleepy sensor through its own lookup service, and sensors re-register within 1–8 s after the S3 reboots. Matter points its lookups at the S3 automatically. <b>Still to prove on the S3:</b> the lookup query to its own address passes through the ESP's IP stack (lwIP) and relies on its loopback, and border router mode must run with Wi-Fi compiled out (it already builds). Fallback unchanged: a small custom resolver that reads the SRP server's table directly.</td></tr>
+        <tr><td><span class="sev low">Low</span></td><td>IKEA sensors failing to pair over Bluetooth with Espressif's controller</td><td>Two open esp-matter issues (<a href="https://github.com/espressif/esp-matter/issues/1772">#1772</a>, <a href="https://github.com/espressif/esp-matter/issues/1532">#1532</a>) report IKEA devices from the same product line (TIMMERFLOTTE, KLIPPBOK, BILRESA) and Aqara devices failing with <code>error: ac</code>, on stock S3 + H2 boards. The same devices pair fine with the Linux reference tool (chip-tool). Espressif hasn't replied.</td><td><b>Works with the patch:</b> the first MYGGBETT paired on 6 Oct. Still to show: that this sensor takes the path the patch fixes, which a new log line will tell on the next pairing. Traced on 5 Oct to the moment right after the Bluetooth link comes up. These sensors agree on a packet size themselves before Espressif's stack tells Matter the link is up. Matter then tries to agree on it again, the stack says “already done”, and Matter treats that as a fatal error. A two-line patch to the Matter SDK accepts “already done”, and the firmware is built with it (<code>patches/</code> in the project). Pairing the first MYGGBETT in Phase 2 confirms it. If it still fails, the log now names the real error code. <b>Last-resort fallback:</b> during pairing only, the S3 opens a temporary Wi-Fi hotspot so chip-tool on a computer can do the Bluetooth step. The S3 then adds itself as a second controller over the network, and the hotspot closes. This is untested.</td></tr>
+        <tr><td><span class="sev low">Resolved</span></td><td>Looking up sensors with no Wi-Fi</td><td>Espressif's controller and border router setup looks devices up through Wi-Fi, and its config turns off the Thread-side lookup clients. Offline, the S3 has to run the lookup service itself.</td><td><b>Passed in simulation</b> (4 runs, 17 of 17 checks, same OpenThread version as the S3): the S3 finds a sleepy sensor through its own lookup service, and sensors re-register within 1–8 s after the S3 reboots. Matter points its lookups at the S3 automatically. <b>Passed on the S3 on 6 Oct:</b> the lookup query to its own address goes through the ESP's IP stack (lwIP) and its loopback, border router mode runs with Wi-Fi compiled out, and the network is up 18.6 s after a reboot.</td></tr>
         <tr><td><span class="sev low">Resolved</span></td><td>Certificate check needs IKEA's root certificate</td><td>The default trust store holds test certificates only.</td><td>Done. IKEA's root certificate (<i>IKEA of Sweden Matter PAA G1</i>, vendor ID 0x117C, valid until 2099) is in the Matter certificate registry. The firmware bundles it with all 72 production root certificates and leaves Matter's test certificates out.</td></tr>
         <tr><td><span class="sev med">Medium</span></td><td>The built-in subscription gives up after 2 failed retries</td><td>Hard-coded in esp-matter. Home Assistant users see MYGGBETT subscriptions drop.</td><td><b>Handled in the firmware, untested on hardware.</b> Its own subscriptions on Matter's lower-level API: unlimited retries with backoff (10 s doubling to 5 min), a resubscribe to every sensor once the network is up after boot, keep-alive reports counted as signs of life, and the “not heard from” LED state</td></tr>
         <tr><td><span class="sev low">Low</span></td><td>Waveshare publishes no schematic for the N8R8 version</td><td>Their schematic is for the standard 4 MB + 2 MB version. Their docs say GPIO33–37 are reserved for octal PSRAM.</td><td>On arrival, run <code>esptool.py flash_id</code> to confirm 8 MB flash and 8 MB PSRAM and whether the PSRAM is octal or quad, then set the matching PSRAM option in the firmware config. The firmware now defaults to octal; switch it to quad if boot reports a PSRAM error.</td></tr>
@@ -689,19 +669,19 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <div class="phase"><span class="n">0</span><div class="body">
       <h3>Toolchain and hardware check</h3>
       <p>Install ESP-IDF v5.5.5 and esp-matter v1.6. Confirm the S3's flash and PSRAM with <code>esptool.py flash_id</code>. Flash <code>ot_rcp</code> to the H2 over its USB, configured to talk over the TX/RX pins (UART0) at 460 800 baud, the default on both sides. Wire everything as above. Flash a small test program to the S3 that steps through all 8 LEDs on GPIO13 with a brightness cap.</p>
-      <p class="status"><span class="sev med">Ready to test</span><span>ESP-IDF v5.5.5 and esp-matter v1.6 are installed on the build machine. esp-matter's installer needed a one-line fix for Python 3.13. The parts arrived on 6 Oct. The LED test firmware is built for both boards. The H2's radio firmware is built too: ESP-IDF's <code>ot_rcp</code> from the same tree, on its TX/RX pins (GPIO24/23) at 460 800 baud. Order of work: solder the headers, check the S3's flash and PSRAM, run the LED test on the S3, flash the H2, wire the radio link, then flash the controller.</span></p>
+      <p class="status"><span class="sev med">Mostly done</span><span>On 6 Oct the S3 checked out as an ESP32-S3-PICO-1 with 8 MB flash and 8 MB octal PSRAM, the LED test ran on the S3, and the H2 got its radio firmware, all on the bench with USB power. Still open: the checkpoint below on the final USB-C power wiring. Earlier: ESP-IDF v5.5.5 and esp-matter v1.6 are installed on the build machine. esp-matter's installer needed a one-line fix for Python 3.13. The parts arrived on 6 Oct. The LED test firmware is built for both boards. The H2's radio firmware is built too: ESP-IDF's <code>ot_rcp</code> from the same tree, on its TX/RX pins (GPIO24/23) at 460 800 baud. Order of work: solder the headers, check the S3's flash and PSRAM, run the LED test on the S3, flash the H2, wire the radio link, then flash the controller.</span></p>
       <p class="gate"><b>Checkpoint</b>All 8 LEDs show the right colours on supply power, with USB plugged in at the same time, and without flicker. The console attaches through a hub whichever of supply and cable goes first. The S3 reports 8 MB of PSRAM.</p>
     </div></div>
     <div class="phase"><span class="n">1</span><div class="body">
       <h3>Offline Thread network and lookup service</h3>
       <p>Build the controller example with the border-router config, but with Wi-Fi turned off. Point its radio UART at GPIO5/GPIO6, and set the PSRAM mode from Phase 0. Create the Thread network from firmware. Turn the OpenThread SRP and DNS clients back on and start the SRP and DNS-SD servers by hand. Lookups then go to the S3's own address automatically.</p>
-      <p class="status"><span class="sev low">Passed in simulation</span><span>Two simulated OpenThread nodes proved the lookup, including a controller reboot. The offline controller firmware builds. The on-device checkpoint below is still open.</span></p>
+      <p class="status"><span class="sev low">Passed on hardware</span><span>Two simulated OpenThread nodes proved the lookup first. On 6 Oct the real S3 became leader on channel 15, used its own lookup service, resolved its own registered service, and brought the network back after a reboot.</span></p>
       <p class="gate"><b>Checkpoint</b>The S3 talks to the H2 and becomes Thread leader. The lookup service is running, and the S3 can register a test service with it and resolve that service again. The network survives a reboot.</p>
     </div></div>
     <div class="phase"><span class="n">2</span><div class="body">
       <h3>Pair one MYGGBETT</h3>
       <p>Load IKEA's root certificate. Pair one sensor from the console with <code>pair &lt;code&gt;</code>, then check that its subscription to StateValue on endpoint 1 comes up.</p>
-      <p class="status"><span class="sev med">Waiting for the S3</span><span>The firmware for this step is written and builds, with IKEA's root certificate bundled and the Bluetooth pairing fix applied.</span></p>
+      <p class="status"><span class="sev low">Passed</span><span>On 6 Oct the first MYGGBETT paired over Bluetooth with the patched firmware, reported open and closed within a second or two, and was still paired after a reboot. A first try found nothing because the sensor's 15-minute pairing window had closed; a factory reset opened a new one.</span></p>
       <p class="gate"><b>Checkpoint</b>Pairing succeeds and opening and closing the window shows up within a few seconds. If pairing fails with <code>error: ac</code>, stop and debug that before going any further.</p>
     </div></div>
     <div class="phase"><span class="n">3</span><div class="body">
@@ -722,7 +702,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     </div></div>
     <div class="phase"><span class="n">5</span><div class="body">
       <h3>Enclosure and handover</h3>
-      <p>Mount the supply in its enclosure, strain-relieve the mains lead, and tidy the low-voltage side. Write a README covering pairing, removal and reflashing. With 8 MB of flash, over-the-air updates become an option later.</p>
+      <p>Put the boards and the USB-C breakout in an enclosure, strain-relieve the USB-C cable, and tidy the wiring. Write a README covering pairing, removal and reflashing. With 8 MB of flash, over-the-air updates become an option later.</p>
     </div></div>
     <div class="phase"><span class="n">6</span><div class="body">
       <h3>One unit per room</h3>
@@ -826,14 +806,13 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
   </div>
   <div class="facts">
     <div class="fact">
-      <h3>RS-15-5</h3>
+      <h3>USB-C power</h3>
       <ul>
-        <li>85–264 VAC input, 5 V at 3 A output, adjustable 4.75–5.5 V</li>
-        <li>Terminals in order: L, N, FG, −V, +V, then the ADJ pot</li>
-        <li>Protected against overload (recovers on its own), overvoltage above 5.75–6.75 V, and overheating</li>
-        <li>FG must be earthed. M3 terminal screws, 6–8 kgf·cm.</li>
+        <li>A USB-C device with 5.1 kΩ pull-downs on CC1 and CC2 gets 5 V from any USB-C charger, at the current the charger advertises (usually up to 3 A)</li>
+        <li>Without a Power Delivery chip it can never get more than 5 V. A PD trigger board negotiates 9–20 V unless it's set to 5 V.</li>
+        <li>GaN chargers are double insulated (Class II), so no earth is needed</li>
       </ul>
-      <p class="src muted">Datasheet 2026-04-10 · installation manual 2025-12-17</p>
+      <p class="src muted">USB Type-C and USB Power Delivery specifications</p>
     </div>
     <div class="fact">
       <h3>ESP32-S3-Zero-N8R8</h3>
@@ -882,8 +861,6 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
   <div class="col" style="max-width:none">
     <h3>Sources</h3>
     <ul class="sources">
-      <li><a href="https://www.meanwell.com/Upload/PDF/RS-15/RS-15-SPEC.PDF">Mean Well RS-15 datasheet</a></li>
-      <li><a href="https://www.meanwell.com/Upload/PDF/Enclosed_Type_EN.pdf">Mean Well enclosed-type installation manual</a></li>
       <li><a href="https://www.electrokit.com/en/esp32-s3-utvecklingskort-mini-8mb-psram-8mb">Electrokit: ESP32-S3-Zero-N8R8</a></li>
       <li><a href="https://docs.waveshare.com/ESP32-S3-Zero">Waveshare ESP32-S3-Zero docs</a></li>
       <li><a href="https://files.waveshare.com/wiki/ESP32-S3-Zero/ESP32-S3-Zero-Sch.pdf">ESP32-S3-Zero schematic</a></li>

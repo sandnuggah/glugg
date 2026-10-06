@@ -3,11 +3,12 @@
 Glugg (Swedish for a small opening in a wall) watches the windows of the user's wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT door/window sensors (Matter over Thread) and lights one LED per open window on an 8-LED WS2812 stick. Sensor n owns LED n, in the order sensors were paired.
 
 - Full plan, wiring diagram, risks and sources: https://claude.ai/artifact/5PzD6ZSrUVS8m9g1BBY7jM (read it with the Artifact tool, `action: "read"`)
-  - Local snapshot: `docs/plan.html` (rev 13, 2026-10-06, the version published from it). It doesn't update itself; the artifact is the live version. It includes the publish skeleton; strip everything up to `<body>` and the closing `</body></html>` before republishing from it.
+  - Local snapshot: `docs/plan.html` (rev 14, 2026-10-07, the version published from it). It doesn't update itself; the artifact is the live version. It includes the publish skeleton; strip everything up to `<body>` and the closing `</body></html>` before republishing from it.
 - Parts list: `bom.csv` (Electrokit article numbers, `sku; qty`) has every electronic component.
-  - Not in it: pin headers (both boards are the no-header versions), perfboard and a DIP-14 socket, hook-up wire, terminal blocks for the rails, DIN rail or an enclosure, and the mains lead and fused switch.
+  - Not in it: the power input (a USB-C breakout and a USB-C charger, see Power), pin headers (both boards are the no-header versions), perfboard and a DIP-14 socket, hook-up wire, terminal blocks for the rails, and an enclosure.
   - The first 7 lines were ordered on 2026-09-30.
-  - Lines 8–10 (H2-Zero 41032818, Adafruit NeoPixel Stick 41012479, Mean Well HDR-15-5 41021466) are parts the user already owned, or an Electrokit substitute for them. Electrokit doesn't sell the RS-15-5, so HDR-15-5 stands in: same wiring, but Class II, so there is no FG/earth terminal.
+  - Lines 8–9 (H2-Zero 41032818, Adafruit NeoPixel Stick 41012479) are parts the user already owned.
+  - The Mean Well supply (RS-15-5, or the HDR-15-5 that stood in for it on the BOM) was dropped on 2026-10-07 in favour of USB-C power.
   - The last line (40811310, 1 kΩ metal film) is the UART series resistor. It was added after the order and is still to buy.
   - The MYGGBETT sensors come from IKEA, not Electrokit.
 
@@ -29,7 +30,9 @@ Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the control
 
 ## Wiring (pins are fixed)
 
-- **Power:** Mean Well RS-15-5 (or the BOM's HDR-15-5: same +V/−V wiring, no FG terminal) set to 5.0 V feeds a +5 V rail and a GND rail. Each board's `5V` pin goes through its own **1N5817** diode, because both boards wire 5V straight to USB VBUS. The ~4.7 V after the diode is fine for both boards, so leave the supply at 5.0 V.
+- **Power (changed 2026-10-07):** a USB-C GaN charger feeds a plain **USB-C breakout** (the user's red board: 5.1 kΩ pull-downs on CC1/CC2, no PD chip, so the charger can only give 5 V). Its VBUS is the +5 V rail and its GND the GND rail; CC1, CC2, D+ and D− stay unconnected. No mains wiring and no earth needed. Each board's `5V` pin goes through its own **1N5817** diode, because both boards wire 5V straight to USB VBUS. The ~4.7–4.9 V after the diode is fine for both boards.
+  - Before wiring the breakout to the rail: measure ~5.1 kΩ from CC1 and CC2 to GND, and ~5.0–5.2 V on VBUS with the charger plugged in. Never use a PD trigger board here unless it is fixed to 5 V: 9–20 V would destroy the stick and both boards.
+  - If the charger cuts out when plugged in, the 1000 µF capacitor's inrush is the likely cause (try 470 µF).
   - The diode protects the rail from USB, not USB from the rail. With the supply on, each board's USB-C VBUS already sits at ~4.7 V, and a USB-C host (the Mac) may refuse to attach to a port that already has VBUS on it. A direct C-to-C cable plugged in after the supply is on may then give no console.
   - Fix: connect the S3 through something that stays plugged into the Mac (any USB hub or dock, or a USB-C→USB-A adapter plus an A-to-C cable), and plug and unplug only at the board end. The Type-C check happens when the hub or adapter goes into the Mac, and the S3 shows up later like any device on a USB-A port. The Mac's 5 V is above the ~4.7 V behind the diode, so nothing back-feeds the Mac.
   - With a direct C-to-C cable, plug USB in before switching the supply on. Many ports are lenient, so the direct cable may work anyway. Check it once on the bench.

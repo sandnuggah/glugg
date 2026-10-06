@@ -15,7 +15,6 @@ All from [Electrokit](https://www.electrokit.com/en/quickorder) except the senso
 | Waveshare ESP32-S3-Zero-N8R8 | 41036435 | 1 |
 | Waveshare ESP32-H2-Zero | 41032818 | 1 |
 | Adafruit NeoPixel Stick, 8 LEDs | 41012479 | 1 |
-| Mean Well HDR-15-5, 5 V supply (or an RS-15-5) | 41021466 | 1 |
 | 74HCT125N quad buffer | 40380125 | 1 |
 | 1N5817 Schottky diode | 40315817 | 2 |
 | Resistor 330 Ω | 40811233 | 1 |
@@ -25,7 +24,7 @@ All from [Electrokit](https://www.electrokit.com/en/quickorder) except the senso
 | Capacitor 100 nF | 41015538 | 1 |
 | IKEA MYGGBETT door/window sensor | from IKEA | up to 8 |
 
-You'll also need pin headers (neither board comes with them), something to build on, wire, and a mains lead with a fused switch.
+You'll also need a USB-C charger and a plain USB-C breakout board for power (the kind with 5.1 kΩ resistors on its CC pins, not a PD trigger board), pin headers (neither board comes with them), something to build on, and wire.
 
 ## Wiring
 
@@ -34,7 +33,7 @@ You'll also need pin headers (neither board comes with them), something to build
 - Each board's 5V pin is fed through its own 1N5817.
 - The S3's GPIO13 drives the LEDs through the 74HCT125 and the 330 Ω resistor. Tie the 74HCT125's unused inputs (pins 4, 5, 9, 10, 12, 13) to GND.
 - The two boards talk over two crossed UART wires, with the 1 kΩ resistor at the S3 end.
-- The RS-15-5 must be plugged into an **earthed** outlet. The HDR-15-5 doesn't need earth.
+- Power comes from a USB-C charger through the USB-C breakout: its VBUS is the +5 V rail. Measure 5 V on it before connecting anything.
 
 ## Usage
 

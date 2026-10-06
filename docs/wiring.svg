@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="780" viewBox="0 0 1320 780" role="img" aria-label="Wiring: mains to RS-15-5 L, N and FG. RS-15-5 +V and −V form a 5 V rail and a ground rail. The 5 V rail feeds the ESP32-H2-Zero and the ESP32-S3-Zero 5V pins through one 1N5817 diode each, the 74HCT125 VCC and the LED stick. H2 TX goes to S3 GPIO5, and S3 GPIO6 goes through a 1 kΩ resistor to H2 RX. S3 GPIO13 goes to 74HCT125 input 1A with a 10 kΩ pull-down; output 1Y goes through 330 Ω to the stick's DIN. A 1000 µF capacitor sits across the rails at the stick.">
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="780" viewBox="0 0 1320 780" role="img" aria-label="Wiring: a USB-C charger feeds a USB-C breakout whose VBUS and GND form a 5 V rail and a ground rail. The 5 V rail feeds the ESP32-H2-Zero and the ESP32-S3-Zero 5V pins through one 1N5817 diode each, the 74HCT125 VCC and the LED stick. H2 TX goes to S3 GPIO5, and S3 GPIO6 goes through a 1 kΩ resistor to H2 RX. S3 GPIO13 goes to 74HCT125 input 1A with a 10 kΩ pull-down; output 1Y goes through 330 Ω to the stick's DIN. A 1000 µF capacitor sits across the rails at the stick.">
 <style>
-  svg { --bg: #f4f5f2; --surface: #ffffff; --fg: #1a1d1b; --muted: #5a625c; --accent: #17614a; --accent-soft: #e2eee8; --w5v: #d0312d; --wgnd: #2b2f2d; --wdata: #b97f00; --wL: #8a5a2b; --wN: #2f6fd1; --wPE: #3f8f3a; --lit: #f2a900; --wuart: #7a4fc9; --high: #b42318; --high-soft: #fbe9e7; --f-display: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; --f-mono: ui-monospace, Menlo, Consolas, monospace; color: var(--fg); font-family: var(--f-mono); }
-  @media (prefers-color-scheme: dark) { svg { --bg: #111412; --surface: #191d1b; --fg: #e5e9e6; --muted: #9ba49e; --accent: #5cc79e; --accent-soft: #1b2d25; --w5v: #ff6b63; --wgnd: #c3cac5; --wdata: #f0b429; --wL: #c9925c; --wN: #6ea2ff; --wPE: #6cc766; --lit: #ffc233; --wuart: #b79cff; --high: #ff8a80; --high-soft: #3a1c1a; } }
+  svg { --bg: #f4f5f2; --surface: #ffffff; --fg: #1a1d1b; --muted: #5a625c; --accent: #17614a; --accent-soft: #e2eee8; --w5v: #d0312d; --wgnd: #2b2f2d; --wdata: #b97f00; --lit: #f2a900; --wuart: #7a4fc9; --high: #b42318; --high-soft: #fbe9e7; --f-display: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; --f-mono: ui-monospace, Menlo, Consolas, monospace; color: var(--fg); font-family: var(--f-mono); }
+  @media (prefers-color-scheme: dark) { svg { --bg: #111412; --surface: #191d1b; --fg: #e5e9e6; --muted: #9ba49e; --accent: #5cc79e; --accent-soft: #1b2d25; --w5v: #ff6b63; --wgnd: #c3cac5; --wdata: #f0b429; --lit: #ffc233; --wuart: #b79cff; --high: #ff8a80; --high-soft: #3a1c1a; } }
 </style>
 <rect width="1320" height="780" rx="8" fill="var(--surface)"/>
         <g font-size="12" fill="currentColor">
@@ -12,40 +12,27 @@
         <text x="400" y="190" fill="var(--w5v)" font-weight="500">+5 V rail</text>
         <text x="400" y="762" fill="var(--wgnd)" font-weight="500">GND rail (common ground)</text>
 
-        <!-- ===== PSU ===== -->
-        <rect x="30" y="30" width="340" height="100" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
-        <text x="48" y="60" font-family="var(--f-display)" font-size="16" font-weight="600">MEAN WELL RS-15-5</text>
-        <text x="48" y="82" fill="var(--muted)">85–264 VAC in · 5 V / 3 A out</text>
-        <text x="48" y="100" fill="var(--muted)">leave pot at 5.0 V</text>
-        <g font-size="11" text-anchor="middle">
-          <rect x="53" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="70" y="149">L</text>
-          <rect x="103" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="120" y="149">N</text>
-          <rect x="153" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="170" y="149">FG⏚</text>
-          <rect x="223" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="240" y="149">−V</text>
-          <rect x="273" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="290" y="149">+V</text>
-          <circle cx="340" cy="145" r="10" fill="var(--surface)" stroke="currentColor"/><line x1="334" y1="151" x2="346" y2="139" stroke="currentColor"/>
-          <text x="70" y="124" fill="var(--muted)" font-size="10">1</text>
-          <text x="120" y="124" fill="var(--muted)" font-size="10">2</text>
-          <text x="170" y="124" fill="var(--muted)" font-size="10">3</text>
-          <text x="240" y="124" fill="var(--muted)" font-size="10">4</text>
-          <text x="290" y="124" fill="var(--muted)" font-size="10">5</text>
-          <text x="340" y="124" fill="var(--muted)" font-size="10">ADJ</text>
+        <!-- ===== USB-C charger and breakout ===== -->
+        <rect x="30" y="60" width="122" height="60" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
+        <text x="42" y="86" font-family="var(--f-display)" font-size="14" font-weight="600">USB-C CHARGER</text>
+        <text x="42" y="106" fill="var(--muted)" font-size="11">GaN · Class II</text>
+        <line x1="152" y1="100" x2="190" y2="100" stroke="currentColor" stroke-width="3"/>
+        <rect x="186" y="90" width="14" height="20" rx="3" fill="var(--surface)" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="200" y="62" width="130" height="68" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
+        <text x="212" y="86" font-family="var(--f-display)" font-size="14" font-weight="600">USB-C BREAKOUT</text>
+        <text x="212" y="104" fill="var(--muted)" font-size="10">5.1 kΩ on CC1/CC2</text>
+        <text x="212" y="118" fill="var(--muted)" font-size="10">→ plain 5 V, no PD</text>
+        <g font-size="10" text-anchor="middle">
+          <rect x="223" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="240" y="149">GND</text>
+          <rect x="273" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="290" y="149">VBUS</text>
         </g>
 
-        <!-- ===== Mains ===== -->
-        <line x1="70" y1="160" x2="70" y2="250" stroke="var(--wL)" stroke-width="3"/>
-        <line x1="120" y1="160" x2="120" y2="250" stroke="var(--wN)" stroke-width="3"/>
-        <line x1="170" y1="160" x2="170" y2="250" stroke="var(--wPE)" stroke-width="3"/>
-        <line x1="170" y1="160" x2="170" y2="250" stroke="var(--lit)" stroke-width="3" stroke-dasharray="6 6" opacity="0.8"/>
-        <rect x="30" y="250" width="180" height="70" rx="4" fill="var(--high-soft)" stroke="var(--high)" stroke-width="1.5"/>
-        <g font-size="11" text-anchor="middle">
-          <text x="70" y="270">L</text><text x="120" y="270">N</text><text x="170" y="270">PE</text>
-        </g>
-        <text x="120" y="292" text-anchor="middle" font-weight="600" fill="var(--high)">230 V AC mains</text>
-        <text x="120" y="309" text-anchor="middle" font-size="11" fill="var(--high)">via fused switch</text>
-        <text x="30" y="372" font-size="11" fill="var(--muted)">earth (FG) is required</text>
-        <text x="30" y="388" font-size="11" fill="var(--muted)">M3 screws, 0.6–0.8 N·m</text>
-        <text x="30" y="404" font-size="11" fill="var(--muted)">≥ 0.75 mm² / AWG18</text>
+        <!-- ===== Checks before wiring the rail ===== -->
+        <text x="30" y="214" font-size="11" font-weight="600">Before wiring the rail:</text>
+        <text x="30" y="232" font-size="11" fill="var(--muted)">VBUS reads 5.0–5.2 V</text>
+        <text x="30" y="248" font-size="11" fill="var(--muted)">CC1/CC2 ≈ 5.1 kΩ to GND</text>
+        <text x="30" y="264" font-size="11" fill="var(--muted)">CC, D+, D− unconnected</text>
+        <text x="30" y="280" font-size="11" fill="var(--high)">never a 9–20 V PD board</text>
 
         <!-- ===== H2 5V feed with 1N5817 ===== -->
         <circle cx="300" cy="200" r="4.5" fill="var(--w5v)"/>
