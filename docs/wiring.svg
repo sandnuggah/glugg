@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="780" viewBox="0 0 1320 780" role="img" aria-label="Wiring: a USB-C charger feeds a USB-C breakout whose VBUS and GND form a 5 V rail and a ground rail. The 5 V rail feeds the ESP32-H2-Zero and the ESP32-S3-Zero 5V pins through one 1N5817 diode each, the 74HCT125 VCC and the LED stick. H2 TX goes to S3 GPIO5, and S3 GPIO6 goes through a 1 kΩ resistor to H2 RX. S3 GPIO13 goes to 74HCT125 input 1A with a 10 kΩ pull-down; output 1Y goes through 330 Ω to the stick's DIN. A 1000 µF capacitor sits across the rails at the stick.">
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="780" viewBox="0 0 1320 780" role="img" aria-label="Wiring: a USB-C charger feeds a USB-C breakout whose VBUS and GND form a 5 V rail and a ground rail. The 5 V rail feeds the ESP32-S3-Zero 5V pin through a 1N5817 diode, the 74HCT125 VCC and the LED stick. The S3's 5V pin feeds the ESP32-H2-Zero 5V pin through a second 1N5817. H2 TX goes to S3 GPIO5, and S3 GPIO6 goes through a 1 kΩ resistor to H2 RX. S3 GPIO13 goes to 74HCT125 input 1A with a 10 kΩ pull-down; output 1Y goes through 330 Ω to the stick's DIN. A 1000 µF capacitor sits across the rails at the stick.">
 <style>
   svg { --bg: #f4f5f2; --surface: #ffffff; --fg: #1a1d1b; --muted: #5a625c; --accent: #17614a; --accent-soft: #e2eee8; --w5v: #d0312d; --wgnd: #2b2f2d; --wdata: #b97f00; --lit: #f2a900; --wuart: #7a4fc9; --high: #b42318; --high-soft: #fbe9e7; --f-display: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; --f-mono: ui-monospace, Menlo, Consolas, monospace; color: var(--fg); font-family: var(--f-mono); }
   @media (prefers-color-scheme: dark) { svg { --bg: #111412; --surface: #191d1b; --fg: #e5e9e6; --muted: #9ba49e; --accent: #5cc79e; --accent-soft: #1b2d25; --w5v: #ff6b63; --wgnd: #c3cac5; --wdata: #f0b429; --lit: #ffc233; --wuart: #b79cff; --high: #ff8a80; --high-soft: #3a1c1a; } }
@@ -34,14 +34,15 @@
         <text x="30" y="264" font-size="11" fill="var(--muted)">CC, D+, D− unconnected</text>
         <text x="30" y="280" font-size="11" fill="var(--high)">never a 9–20 V PD board</text>
 
-        <!-- ===== H2 5V feed with 1N5817 ===== -->
-        <circle cx="300" cy="200" r="4.5" fill="var(--w5v)"/>
-        <line x1="300" y1="200" x2="300" y2="250" stroke="var(--w5v)" stroke-width="3"/>
-        <polygon points="290,250 310,250 300,266" fill="var(--w5v)"/>
-        <line x1="289" y1="268" x2="311" y2="268" stroke="var(--w5v)" stroke-width="2.5"/>
-        <polyline points="300,268 300,430 330,430" fill="none" stroke="var(--w5v)" stroke-width="3"/>
-        <text x="318" y="258" font-size="11" font-weight="600">1N5817</text>
-        <text x="318" y="272" font-size="10" fill="var(--muted)">Schottky</text>
+        <!-- ===== H2 5V feed: from the S3's 5V pin (after its diode) through a second 1N5817 ===== -->
+        <circle cx="600" cy="264" r="4.5" fill="var(--w5v)"/>
+        <polyline points="600,264 300,264 300,288" fill="none" stroke="var(--w5v)" stroke-width="3"/>
+        <text x="430" y="256" text-anchor="middle" font-size="10" fill="var(--w5v)" font-weight="600">H2 power from the S3's 5V pin</text>
+        <polygon points="290,288 310,288 300,304" fill="var(--w5v)"/>
+        <line x1="289" y1="306" x2="311" y2="306" stroke="var(--w5v)" stroke-width="2.5"/>
+        <polyline points="300,306 300,430 330,430" fill="none" stroke="var(--w5v)" stroke-width="3"/>
+        <text x="318" y="296" font-size="11" font-weight="600">1N5817</text>
+        <text x="318" y="310" font-size="10" fill="var(--muted)">Schottky</text>
 
         <!-- H2 GND -->
         <polyline points="330,458 240,458" fill="none" stroke="var(--wgnd)" stroke-width="3"/>

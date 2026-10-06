@@ -30,7 +30,7 @@ You'll also need a USB-C charger and a plain USB-C breakout board for power (the
 
 ![Wiring diagram](docs/wiring.svg)
 
-- Each board's 5V pin is fed through its own 1N5817.
+- The S3's 5V pin is fed from the +5 V rail through a 1N5817, and the H2's 5V pin from the S3's 5V pin through the second 1N5817, so the H2 is powered whenever the S3 is.
 - The S3's GPIO13 drives the LEDs through the 74HCT125 and the 330 Ω resistor. Tie the 74HCT125's unused inputs (pins 4, 5, 9, 10, 12, 13) to GND.
 - The two boards talk over two crossed UART wires, with the 1 kΩ resistor at the S3 end.
 - Power comes from a USB-C charger through the USB-C breakout: its VBUS is the +5 V rail. Measure 5 V on it before connecting anything.
