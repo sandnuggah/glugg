@@ -3,7 +3,7 @@
 Glugg (Swedish for a small opening in a wall) watches the windows of the user's wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT door/window sensors (Matter over Thread) and lights one LED per open window on an 8-LED WS2812 stick. Sensor n owns LED n, in the order sensors were paired.
 
 - Full plan, wiring diagram, risks and sources: https://claude.ai/artifact/5PzD6ZSrUVS8m9g1BBY7jM (read it with the Artifact tool, `action: "read"`)
-  - Local snapshot: `docs/plan.html` (rev 12, 2026-10-05, the version published from it). It doesn't update itself; the artifact is the live version. It includes the publish skeleton; strip everything up to `<body>` and the closing `</body></html>` before republishing from it.
+  - Local snapshot: `docs/plan.html` (rev 13, 2026-10-06, the version published from it). It doesn't update itself; the artifact is the live version. It includes the publish skeleton; strip everything up to `<body>` and the closing `</body></html>` before republishing from it.
 - Parts list: `bom.csv` (Electrokit article numbers, `sku; qty`) has every electronic component.
   - Not in it: pin headers (both boards are the no-header versions), perfboard and a DIP-14 socket, hook-up wire, terminal blocks for the rails, DIN rail or an enclosure, and the mains lead and fused switch.
   - The first 7 lines were ordered on 2026-09-30.
