@@ -15,7 +15,7 @@ Glugg (Swedish for a small opening in a wall) watches the windows of the user's 
 
 | Area | Decision |
 |---|---|
-| Controller | Waveshare **ESP32-S3-Zero-N8R8** (8 MB flash, 8 MB PSRAM, probably octal; verify with `esptool.py flash_id` on arrival) |
+| Controller | Waveshare **ESP32-S3-Zero-N8R8**. Checked 2026-10-06 with `esptool flash-id`: an **ESP32-S3-PICO-1** (LGA56, rev v0.2) system-in-package with 8 MB GigaDevice quad flash and 8 MB embedded AP Memory PSRAM at 3.3 V. Embedded 8 MB on the S3 is octal, matching `CONFIG_SPIRAM_MODE_OCT`; the first boot log confirms it. |
 | Thread radio | Waveshare **ESP32-H2-Zero**, flashed with ESP-IDF `ot_rcp` (`firmware/rcp`) and connected to the S3 over UART |
 | Network | **Fully offline, no Wi-Fi.** The S3 runs the Thread network plus the SRP and DNS-SD servers itself. |
 | Pairing | USB serial console on the S3: `pair <11-digit code>` |
@@ -52,25 +52,29 @@ Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the control
 1. **Offline lookup (Phase 1 go/no-go). Passed in simulation on 2026-09-30.** See `sim/README.md`.
    - The controller example's OTBR config (`sdkconfig.defaults.otbr`) sets `CONFIG_OPENTHREAD_SRP_CLIENT=n` and `DNS_CLIENT=n`, and relies on Wi-Fi mDNS.
    - Offline, we must re-enable both clients and start the SRP server by hand (`otSrpServerSetEnabled`). No manual DNS server config is needed: Matter's `OnSrpClientStateChange` points the DNS client at the SRP server its own SRP client auto-selects, which is the S3 itself.
-   - Still unproven, check on the S3 in Phase 2:
-     - The DNS query to the S3's own ML-EID goes through lwIP (`PLATFORM_UDP`), so it needs `CONFIG_LWIP_NETIF_LOOPBACK=y`.
-     - `CONFIG_OPENTHREAD_BORDER_ROUTER` (needed for the SRP and DNS-SD servers) must work with Wi-Fi compiled out. It **builds** in `firmware/controller`, which needed an mdns link fix (see its README). Runtime is unproven.
+   - **Passed on the real S3 + H2 on 2026-10-06.** `matter esp ot_cli dns browse _matter._tcp.default.service.arpa.` answered with the controller's own SRP-registered service, address included:
+     - The DNS query to the S3's own ML-EID goes through lwIP (`PLATFORM_UDP`), and `CONFIG_LWIP_NETIF_LOOPBACK=y` makes it work.
+     - `CONFIG_OPENTHREAD_BORDER_ROUTER` runs with Wi-Fi compiled out (with the mdns link fix; the one `Failed to publish meshcop mdns service` error is expected).
+     - The S3's SRP client picks its own server (`srp client server` = its ML-EID, port 53536). Network on channel 15. Ready ("Thread network and lookup service are up") 18.6 s after a reboot.
    - Fallback: a custom resolver that reads the SRP server's table (`otSrpServerGetNextHost` / `otSrpServerHostGetAddresses`).
 2. **IKEA BLE commissioning bug:** `Disabling CHIPoBLE service due to error: ac` (esp-matter #1772, #1532, both still open; IKEA TIMMERFLOTTE, KLIPPBOK, BILRESA and Aqara devices reported).
-   - **Likely cause found and patched locally (2026-10-05), unconfirmed until Phase 2:** NimBLE reports the central's connection late, after the peripheral has already exchanged the ATT MTU, so Matter's own `ble_gattc_exchange_mtu()` gets `BLE_HS_EALREADY`, which it turns into `CHIP_ERROR_INTERNAL` (0xac). See `patches/README.md`.
+   - **Pairing works with the local patch (first MYGGBETT paired 2026-10-06).** Not yet shown that the `BLE_HS_EALREADY` path was actually hit: the patch accepts it silently. **Likely cause found and patched locally (2026-10-05):** NimBLE reports the central's connection late, after the peripheral has already exchanged the ATT MTU, so Matter's own `ble_gattc_exchange_mtu()` gets `BLE_HS_EALREADY`, which it turns into `CHIP_ERROR_INTERNAL` (0xac). See `patches/README.md`.
    - If pairing still fails, the log now shows `BLE MTU exchange failed: <code>`. If it works, offer to post the analysis on both issues and a PR upstream (ask the user first).
 3. **Resubscription:** esp-matter's `k_max_resubscribe_retries = 2`. **Implemented, still to be proven in the Phase 4 soak:** `firmware/controller/main/sensor_link.cpp` keeps its own subscriptions with auto-resubscribe off, and `firmware/components/app_core/sensor_mgr.c` retries with unlimited backoff (10 s → 5 min) and sets the "not heard from" state.
 
 ## Work phases
 
 0. **Toolchain + hardware check.** Install ESP-IDF 5.5.5 and esp-matter v1.6. Run an LED test on real hardware.
-   - **Toolchain installed. Parts arrived 2026-10-06.** LED test firmware (`firmware/led_test`) and the H2 radio firmware (`firmware/rcp`, ESP-IDF's `ot_rcp` from the same tree, UART0 460800 on GPIO23/24) are built, not yet run on hardware.
+   - **Toolchain installed. Parts arrived 2026-10-06.**
+   - **LED test passed on the S3 (2026-10-06)**, on the bench: GPIO13 → 74HCT125 → 330 Ω → stick, everything powered from the S3's USB 5V pin, no Mean Well supply.
+   - **H2 flashed with `firmware/rcp` (2026-10-06):** ESP-IDF's `ot_rcp` from the same tree, UART0 460800 on GPIO23/24. The chip is an ESP32-H2 rev v1.2.
+   - Still open: the checkpoint on supply power with USB attached comes with the final wiring.
 1. **Offline Thread network + lookup service.**
-   - **Passed in simulation on 2026-09-30** (`sim/README.md`). The S3-only checks under Risk 1 happen in Phase 2.
+   - **Passed in simulation on 2026-09-30** (`sim/README.md`) and **on the hardware on 2026-10-06** (bench: both boards on USB, UART link with GND): leader, SRP server running, own service registered and resolved through DNS-SD, network back after a reboot.
    - Before the S3 arrives, prove it in the OpenThread POSIX simulation: `./script/cmake-build simulation`, then run `ot-cli-ftd` nodes.
    - The leader runs `srp server enable`. A second node registers a service over SRP. The leader then resolves that service against **its own** ML-EID with `dns browse` / `dns service`.
 2. **Pair one MYGGBETT** (needs the S3).
-   - **Not started.**
+   - **Passed 2026-10-06** (bench): one MYGGBETT paired over BLE with the patched SDK, reports open/closed live, and is restored after a reboot without re-pairing. A first attempt found no sensor because its 15-minute pairing window had closed; a factory reset (hold the button ~10 s) reopened it.
 3. **The app:** slot manager (NVS), subscription manager, LED renderer, console commands (`pair`, `list`, `remove`, `identify`, `factory-reset confirm`).
    - **Written, not yet run on hardware.** Host logic is in `firmware/components/app_core` + `led_pattern` (tests: `make -C firmware/components/app_core/test` and `make -C firmware/components/led_pattern/test`). The Matter glue is in `firmware/controller/main` (see its README). It builds for the S3.
 4. **Multiple sensors + 48 h soak test.**
