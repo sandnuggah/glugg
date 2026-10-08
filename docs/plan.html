@@ -149,11 +149,11 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
 <div class="wrap">
 
 <header class="top">
-  <span class="eyebrow">Project plan · 7 Oct 2026 · rev 16</span>
+  <span class="eyebrow">Project plan · 8 Oct 2026 · rev 17</span>
   <h1>Glugg</h1>
   <p class="lede">Glugg, Swedish for a small opening in a wall, keeps watch over the windows of your wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT window sensors and lights one LED per open window on an 8-LED strip. Your ESP32-H2 is its Thread radio. Sensor 1 gets LED 1, sensor 2 gets LED 2, in the order they are added. The workshop has four rooms with about 30 windows each, so the finished system is one Glugg per room, each showing its own windows.</p>
   <div class="parts">
-    <span class="chip">USB-C charger + USB-C breakout (5 V)</span>
+    <span class="chip">USB-C charger, into the S3</span>
     <span class="chip">Waveshare ESP32-S3-Zero-N8R8 (new)</span>
     <span class="chip">Waveshare ESP32-H2-Zero</span>
     <span class="chip">8× WS2812 stick (4–7 VDC)</span>
@@ -163,7 +163,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
 
 <section class="verdict" aria-labelledby="v-h">
   <h2 id="v-h">Where this stands</h2>
-  <div class="row"><span>Progress</span><p>The toolchain is installed. The offline lookup, the plan's go/no-go question, <b>passed in simulation</b>. The full S3 firmware (pairing, subscriptions, LEDs and console) is written and builds, and its app logic passes its tests on the build machine. A review against the Matter, OpenThread and ESP-IDF sources then fixed several bugs that would have shown up on the first pairing, and added a startup animation. <b>First hardware results, 6 Oct:</b> on the bench, the LED test runs, the S3 leads its own offline Thread network, and the first MYGGBETT paired over Bluetooth, reports open and closed, and stays paired after a reboot. Power is now a USB-C charger instead of the Mean Well mains supply. <b>7 Oct:</b> Glugg now runs with no computer attached (it used to restart every 30 s), and pairing takes about 30 s instead of 60. Next: a second sensor, then the final wiring and the 48-hour test.</p></div>
+  <div class="row"><span>Progress</span><p>The toolchain is installed. The offline lookup, the plan's go/no-go question, <b>passed in simulation</b>. The full S3 firmware (pairing, subscriptions, LEDs and console) is written and builds, and its app logic passes its tests on the build machine. A review against the Matter, OpenThread and ESP-IDF sources then fixed several bugs that would have shown up on the first pairing, and added a startup animation. <b>First hardware results, 6 Oct:</b> on the bench, the LED test runs, the S3 leads its own offline Thread network, and the first MYGGBETT paired over Bluetooth, reports open and closed, and stays paired after a reboot. Power is now a USB-C charger plugged into the S3, instead of the Mean Well mains supply. <b>7 Oct:</b> Glugg now runs with no computer attached (it used to restart every 30 s), and pairing takes about 30 s instead of 60. Next: a second sensor, then the final wiring and the 48-hour test.</p></div>
   <div class="row"><span>Design</span><p>The <b>ESP32-S3-Zero-N8R8</b> (8 MB flash, 8 MB PSRAM) runs the Matter controller: it pairs the sensors, keeps track of them and drives the LEDs. The <b>ESP32-H2-Zero</b> is reflashed as its Thread radio, and the two boards talk over two UART wires. Espressif tests exactly this pairing: an S3 with PSRAM running the controller plus a Thread border router, with an H2 as the radio.</p></div>
   <div class="row"><span>Sensor</span><p>MYGGBETT uses Matter over Thread only; nobody has found a way to pair it over Zigbee. It pairs over Bluetooth, so the S3 handles that, and after pairing it talks over Thread through the H2.</p></div>
   <div class="row"><span>Network</span><p>Fully offline, by your choice: no Wi-Fi and no network credentials on the device. The S3 therefore runs the Thread network's lookup service (SRP and DNS-SD) itself. Espressif's example doesn't do this, but it works: first in an OpenThread simulation, then on the real S3 on 6 Oct. Matter points its lookups at the S3's own service without extra code.</p></div>
@@ -176,43 +176,27 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
   <div class="col">
     <span class="eyebrow">1 · Wiring</span>
     <h2 id="w-h">Wiring diagram</h2>
-    <p>One USB-C charger, through a small USB-C breakout board, feeds both boards and the LED stick through a shared +5 V and GND rail. Each board's 5V pin gets its own Schottky diode, because both boards wire it straight to their USB port. The S3's diode hangs off the rail, and the H2's off the S3's 5V pin, so the H2 is powered whenever the S3 is, from the rail or from the S3's USB. The diodes keep a computer's USB port from feeding the rail, but the rail's 5 V still reaches the S3's USB-C socket. So connect the S3 to your computer through a USB hub or adapter that stays plugged into the computer (see Safety below). The S3's 3.3 V data line goes through a 5 V buffer to reach the LEDs. The H2 connects to the S3 with two crossed UART wires: each board's TX goes to the other board's RX, and the S3's TX wire has a 1 kΩ resistor at the S3 end.</p>
+    <p>A USB-C charger plugs straight into the S3. The S3-Zero ties its 5V pin to its USB port, so that pin is the 5 V rail: it powers the LED stick and the buffer, and the H2 through a Schottky diode. The H2 is powered whenever the S3 is, and the diode keeps the two boards' USB ports apart. The same USB-C port is the console, so to pair a sensor you swap the charger for your computer. The S3's 3.3 V data line goes through a 5 V buffer to reach the LEDs. The H2 connects to the S3 with two crossed UART wires: each board's TX goes to the other board's RX, and the S3's TX wire has a 1 kΩ resistor at the S3 end.</p>
   </div>
 
   <figure>
     <div class="diagram">
-      <svg viewBox="0 0 1320 780" role="img" aria-label="Wiring: a USB-C charger feeds a USB-C breakout whose VBUS and GND form a 5 V rail and a ground rail. The 5 V rail feeds the ESP32-S3-Zero 5V pin through a 1N5817 diode, the 74HCT125 VCC and the LED stick. The S3's 5V pin feeds the ESP32-H2-Zero 5V pin through a second 1N5817. H2 TX goes to S3 GPIO5, and S3 GPIO6 goes through a 1 kΩ resistor to H2 RX. S3 GPIO13 goes to 74HCT125 input 1A with a 10 kΩ pull-down; output 1Y goes through 330 Ω to the stick's DIN. A 1000 µF capacitor sits across the rails at the stick.">
+      <svg viewBox="0 0 1320 780" role="img" aria-label="Wiring: a USB-C charger plugs into the ESP32-S3-Zero, whose 5V and GND pins form a 5 V rail and a ground rail. The 5 V rail feeds the 74HCT125 VCC and the LED stick, and the ESP32-H2-Zero 5V pin through a 1N5817 diode. H2 TX goes to S3 GPIO5, and S3 GPIO6 goes through a 1 kΩ resistor to H2 RX. S3 GPIO13 goes to 74HCT125 input 1A with a 10 kΩ pull-down; output 1Y goes through 330 Ω to the stick's DIN. A 1000 µF capacitor sits across the rails at the stick.">
         <g font-size="12" fill="currentColor">
 
         <!-- ===== Rails ===== -->
-        <polyline points="290,160 290,200 1240,200" fill="none" stroke="var(--w5v)" stroke-width="3"/>
-        <polyline points="240,160 240,740 1240,740" fill="none" stroke="var(--wgnd)" stroke-width="3"/>
-        <text x="400" y="190" fill="var(--w5v)" font-weight="500">+5 V rail</text>
+        <polyline points="640,280 600,280 600,200 1240,200" fill="none" stroke="var(--w5v)" stroke-width="3"/>
+        <polyline points="240,345 240,740 1240,740" fill="none" stroke="var(--wgnd)" stroke-width="3"/>
+        <text x="850" y="190" fill="var(--w5v)" font-weight="500">+5 V rail = the S3's 5V pin</text>
         <text x="400" y="762" fill="var(--wgnd)" font-weight="500">GND rail (common ground)</text>
 
-        <!-- ===== USB-C charger and breakout ===== -->
-        <rect x="30" y="60" width="122" height="60" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
-        <text x="42" y="86" font-family="var(--f-display)" font-size="14" font-weight="600">USB-C CHARGER</text>
-        <text x="42" y="106" fill="var(--muted)" font-size="11">GaN · Class II</text>
-        <line x1="152" y1="100" x2="190" y2="100" stroke="currentColor" stroke-width="3"/>
-        <rect x="186" y="90" width="14" height="20" rx="3" fill="var(--surface)" stroke="currentColor" stroke-width="1.5"/>
-        <rect x="200" y="62" width="130" height="68" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
-        <text x="212" y="86" font-family="var(--f-display)" font-size="14" font-weight="600">USB-C BREAKOUT</text>
-        <text x="212" y="104" fill="var(--muted)" font-size="10">5.1 kΩ on CC1/CC2</text>
-        <text x="212" y="118" fill="var(--muted)" font-size="10">→ plain 5 V, no PD</text>
-        <g font-size="10" text-anchor="middle">
-          <rect x="223" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="240" y="149">GND</text>
-          <rect x="273" y="130" width="34" height="30" fill="var(--surface)" stroke="currentColor"/><text x="290" y="149">VBUS</text>
-        </g>
+        <!-- ===== USB-C charger into the S3's own USB-C port ===== -->
+        <rect x="665" y="96" width="130" height="56" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
+        <text x="677" y="120" font-family="var(--f-display)" font-size="14" font-weight="600">USB-C CHARGER</text>
+        <text x="677" y="140" fill="var(--muted)" font-size="11">any · 5 V · Class II</text>
+        <path d="M730 152 L730 194 A6 6 0 0 1 730 206 L730 238" fill="none" stroke="currentColor" stroke-width="3"/>
 
-        <!-- ===== Checks before wiring the rail ===== -->
-        <text x="30" y="214" font-size="11" font-weight="600">Before wiring the rail:</text>
-        <text x="30" y="232" font-size="11" fill="var(--muted)">VBUS reads 5.0–5.2 V</text>
-        <text x="30" y="248" font-size="11" fill="var(--muted)">CC1/CC2 ≈ 5.1 kΩ to GND</text>
-        <text x="30" y="264" font-size="11" fill="var(--muted)">CC, D+, D− unconnected</text>
-        <text x="30" y="280" font-size="11" fill="var(--high)">never a 9–20 V PD board</text>
-
-        <!-- ===== H2 5V feed: from the S3's 5V pin (after its diode) through a second 1N5817 ===== -->
+        <!-- ===== H2 5V feed: from the S3's 5V pin through a 1N5817 ===== -->
         <circle cx="600" cy="264" r="4.5" fill="var(--w5v)"/>
         <polyline points="600,264 300,264 300,288" fill="none" stroke="var(--w5v)" stroke-width="3"/>
         <text x="430" y="256" text-anchor="middle" font-size="10" fill="var(--w5v)" font-weight="600">H2 power from the S3's 5V pin</text>
@@ -225,15 +209,6 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
         <!-- H2 GND -->
         <polyline points="330,458 240,458" fill="none" stroke="var(--wgnd)" stroke-width="3"/>
         <circle cx="240" cy="458" r="4.5" fill="var(--wgnd)"/>
-
-        <!-- ===== S3 5V feed with 1N5817 ===== -->
-        <circle cx="600" cy="200" r="4.5" fill="var(--w5v)"/>
-        <line x1="600" y1="200" x2="600" y2="228" stroke="var(--w5v)" stroke-width="3"/>
-        <polygon points="590,228 610,228 600,244" fill="var(--w5v)"/>
-        <line x1="589" y1="246" x2="611" y2="246" stroke="var(--w5v)" stroke-width="2.5"/>
-        <polyline points="600,246 600,280 640,280" fill="none" stroke="var(--w5v)" stroke-width="3"/>
-        <text x="584" y="236" font-size="11" text-anchor="end" font-weight="600">1N5817</text>
-        <text x="584" y="251" font-size="10" text-anchor="end" fill="var(--muted)">Schottky</text>
 
         <!-- S3 GND: hops over the H2 5V feed -->
         <path d="M640 308 L620 308 L620 345 L306 345 A6 6 0 0 0 294 345 L240 345" fill="none" stroke="var(--wgnd)" stroke-width="3"/>
@@ -286,7 +261,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
 
         <!-- ===== ESP32-S3-Zero-N8R8 ===== -->
         <rect x="700" y="238" width="60" height="16" rx="4" fill="var(--surface)" stroke="currentColor"/>
-        <text x="730" y="230" text-anchor="middle" font-size="11" fill="var(--muted)">USB-C → computer (console)</text>
+        <text x="740" y="228" font-size="10" fill="var(--muted)">power, or the Mac for the console</text>
         <rect x="640" y="252" width="180" height="290" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
         <text x="730" y="382" text-anchor="middle" font-family="var(--f-display)" font-size="15" font-weight="600">ESP32-S3-Zero</text>
         <text x="730" y="399" text-anchor="middle" font-size="11" fill="var(--muted)">N8R8 · Matter controller</text>
@@ -412,12 +387,10 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <table>
       <thead><tr><th>From</th><th>To</th><th>Wire</th><th>Why / notes</th></tr></thead>
       <tbody>
-        <tr><td>USB-C charger</td><td>USB-C breakout socket</td><td class="w">USB-C cable</td><td>Any USB-C charger. The breakout's 5.1 kΩ resistors on CC1 and CC2 ask for plain 5 V, and it has no chip that could ask for more. Don't use a USB-C PD trigger board unless it is fixed to 5 V: 9–20 V would destroy the stick and both boards.</td></tr>
-        <tr><td>Breakout <b>VBUS</b></td><td>+5 V rail</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red</td><td>Measure 5.0–5.2 V here with the charger plugged in before wiring the rail, well within the stick's 4–7 V rating</td></tr>
-        <tr><td>Breakout <b>GND</b></td><td>GND rail</td><td class="w"><span class="sw" style="background:var(--wgnd)"></span>black</td><td>Ground shared by every part. Leave CC1, CC2, D+ and D− unconnected.</td></tr>
-        <tr><td>+5 V rail</td><td>1N5817 anode → cathode → S3-Zero <b>5V</b> (left pin 1)</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red</td><td>The S3-Zero's 5V pin is wired straight to USB VBUS, per Waveshare's schematic. The diode stops your computer's USB port from feeding the rail. It doesn't stop the rail's ~4.7 V from reaching the S3's USB-C socket, which is why the console cable goes through a hub or adapter.</td></tr>
+        <tr><td>USB-C charger</td><td>S3-Zero USB-C port</td><td class="w">USB-C cable</td><td>Powers the whole unit. The same port is the console: to pair, swap the charger for your computer (Glugg restarts, pairings are kept), or use a USB-C hub with power pass-through to keep both connected.</td></tr>
+        <tr><td>S3-Zero <b>5V</b> (left pin 1)</td><td>+5 V rail</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red</td><td>The S3-Zero's 5V pin is wired straight to its USB VBUS, per Waveshare's schematic, so whatever powers the S3 powers the rail. Everything runs through the S3's USB-C socket, so keep the total under about 1 A (see the LED notes).</td></tr>
         <tr><td>GND rail</td><td>S3-Zero <b>GND</b> (left pin 2)</td><td class="w"><span class="sw" style="background:var(--wgnd)"></span>black</td><td></td></tr>
-        <tr><td>S3-Zero <b>5V</b> (left pin 1, after its diode)</td><td>1N5817 anode → cathode → H2-Zero <b>5V</b> (left pin 1)</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red</td><td>The H2 is powered whenever the S3 is, from the rail or from the S3's USB, so the S3 never drives an unpowered H2 through the UART. The diode keeps the two boards' USB ports apart, so the H2 can be flashed over its own USB while wired. After two diode drops the H2 gets about 4.4 V, plenty for its 3.3 V regulator.</td></tr>
+        <tr><td>S3-Zero <b>5V</b> (left pin 1)</td><td>1N5817 anode → cathode → H2-Zero <b>5V</b> (left pin 1)</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red</td><td>The H2 is powered whenever the S3 is, from the rail or from the S3's USB, so the S3 never drives an unpowered H2 through the UART. The diode keeps the two boards' USB ports apart, so the H2 can be flashed over its own USB while wired. After the diode the H2 gets about 4.7 V, plenty for its 3.3 V regulator. To flash the H2 over its own USB, unplug the S3's power first.</td></tr>
         <tr><td>GND rail</td><td>H2-Zero <b>GND</b> (left pin 2)</td><td class="w"><span class="sw" style="background:var(--wgnd)"></span>black</td><td>Both boards must share ground for the UART link to work</td></tr>
         <tr><td>H2-Zero <b>TX</b> (right pin 1, GPIO24)</td><td>S3-Zero <b>5</b> (left pin 8, GPIO5 = UART1 RX)</td><td class="w"><span class="sw" style="background:var(--wuart)"></span>UART</td><td>Thread radio link between the boards, at 460 800 baud (the default for both <code>ot_rcp</code> and the controller). The H2-Zero already has a 499 Ω resistor in series on its TX pin.</td></tr>
         <tr><td>S3-Zero <b>6</b> (left pin 9, GPIO6 = UART1 TX)</td><td>1 kΩ → H2-Zero <b>RX</b> (right pin 2, GPIO23)</td><td class="w"><span class="sw" style="background:var(--wuart)"></span>UART</td><td>Put the resistor at the S3 end. The H2 now gets its power from the S3, but while you wire or flash, the S3's TX could still drive an unpowered H2 through the H2's input protection; 1 kΩ limits that and is harmless at 460 800 baud. Espressif's example uses GPIO17/18, which are pads under the S3-Zero. Header pins 5 and 6 are easier to solder, and the firmware already uses them.</td></tr>
@@ -434,7 +407,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
 
   <div class="col" id="bom">
     <h3>Parts list (Electrokit)</h3>
-    <p>Every electronic component needed to build this from scratch. The MYGGBETT sensors come from IKEA, and the mechanical parts are listed under “Not in the list”. Paste the list into <a href="https://www.electrokit.com/en/quickorder">Electrokit's quick order form</a>, or import <code>bom.csv</code> from the project folder. Prices are Electrokit's list prices excluding VAT on 30 Sep 2026, and every item was in stock that day. The first seven lines are the order placed on 30 Sep (108.32 SEK). The next two are parts you already had. The last line, the 1 kΩ UART resistor, was added after the order and is still to buy. Power comes from a USB-C charger through a USB-C breakout, which aren't in the list; the Mean Well mains supply of earlier revisions was dropped on 7 Oct. The 74AHCT125N was out of stock, so the list uses the 74HCT125N instead. It has the same pinout and also reads 3.3 V as high when powered from 5 V. Don't substitute a plain 74HC125, which needs about 3.5 V.</p>
+    <p>Every electronic component needed to build this from scratch. The MYGGBETT sensors come from IKEA, and the mechanical parts are listed under “Not in the list”. Paste the list into <a href="https://www.electrokit.com/en/quickorder">Electrokit's quick order form</a>, or import <code>bom.csv</code> from the project folder. Prices are Electrokit's list prices excluding VAT on 30 Sep 2026, and every item was in stock that day. The first seven lines are the order placed on 30 Sep (108.32 SEK). The next two are parts you already had. The last line, the 1 kΩ UART resistor, was added after the order and is still to buy. Power comes from any USB-C charger plugged into the S3, which isn't in the list. Earlier revisions used a Mean Well mains supply, then a USB-C breakout feeding the rail. The order on 30 Sep included two 1N5817; the design now uses one. The 74AHCT125N was out of stock, so the list uses the 74HCT125N instead. It has the same pinout and also reads 3.3 V as high when powered from 5 V. Don't substitute a plain 74HC125, which needs about 3.5 V.</p>
   </div>
   <div class="table-wrap">
     <table>
@@ -443,7 +416,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
         <tr class="grp"><td colspan="5">Ordered 30 Sep 2026</td></tr>
         <tr><td class="mono">41036435</td><td>ESP32-S3 dev board mini 8MB + PSRAM 8MB (Waveshare ESP32-S3-Zero-N8R8)</td><td>1</td><td>Matter controller</td><td style="text-align:right">95.20</td></tr>
         <tr><td class="mono">40380125</td><td>74HCT125N DIP-14 quad bus buffer (TI CD74HCT125E)</td><td>1</td><td>3.3 V → 5 V LED data</td><td style="text-align:right">3.04</td></tr>
-        <tr><td class="mono">40315817</td><td>1N5817 Schottky diode, DO-41, 20 V 1 A</td><td>2</td><td>One per board's 5V pin</td><td style="text-align:right">2.00</td></tr>
+        <tr><td class="mono">40315817</td><td>1N5817 Schottky diode, DO-41, 20 V 1 A</td><td>1</td><td>Between the S3's and the H2's 5V pins</td><td style="text-align:right">1.00</td></tr>
         <tr><td class="mono">40811233</td><td>Resistor metal film 0.6 W 1% 330 Ω</td><td>1</td><td>In series with LED data</td><td style="text-align:right">0.80</td></tr>
         <tr><td class="mono">40811410</td><td>Resistor metal film 0.6 W 1% 10 kΩ</td><td>1</td><td>Pull-down on GPIO13</td><td style="text-align:right">0.80</td></tr>
         <tr><td class="mono">41017694</td><td>Electrolytic capacitor 1000 µF 16 V 105 °C, 10×16 mm</td><td>1</td><td>Across the LED stick's power</td><td style="text-align:right">3.60</td></tr>
@@ -453,7 +426,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
         <tr><td class="mono">41012479</td><td>NeoPixel stick 8 RGB LEDs 51mm (Adafruit 1426)</td><td>1</td><td>The 8 window LEDs</td><td style="text-align:right">71.20</td></tr>
         <tr class="grp"><td colspan="5">Added after the order · still to buy</td></tr>
         <tr><td class="mono">40811310</td><td>Resistor metal film 0.6 W 1% 1 kΩ</td><td>1</td><td>In series with S3 TX → H2 RX</td><td style="text-align:right">0.80</td></tr>
-        <tr><td></td><td><b>Total</b></td><td>11</td><td></td><td style="text-align:right"><b>243.52</b></td></tr>
+        <tr><td></td><td><b>Total</b></td><td>10</td><td></td><td style="text-align:right"><b>242.52</b></td></tr>
       </tbody>
     </table>
   </div>
@@ -461,7 +434,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <div class="csv-head"><span class="eyebrow">bom.csv · sku; qty</span><button type="button" id="copy-bom">Copy</button></div>
 <pre id="bom-csv">41036435; 1
 40380125; 1
-40315817; 2
+40315817; 1
 40811233; 1
 40811410; 1
 41017694; 1
@@ -487,7 +460,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
       <h3>Not in the list</h3>
       <ul>
         <li>The MYGGBETT sensors, from IKEA</li>
-        <li>Power: any USB-C charger, and a plain USB-C breakout board with 5.1 kΩ resistors on CC1 and CC2 (not a PD trigger board)</li>
+        <li>A USB-C charger and cable</li>
         <li>An enclosure</li>
         <li>Pin headers: both boards come without them</li>
         <li>Hook-up wire, terminal blocks for the rails, and something to build on, such as perfboard, plus an optional DIP-14 socket for the 74HCT125</li>
@@ -497,7 +470,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
       <h3>Alternatives</h3>
       <ul>
         <li><b>Cheaper LEDs:</b> a generic 8-LED WS2812 stick (41016857, 31.20) is wired the same way (5 V, GND, data in). It isn't branded, and its pad labels may differ from the diagram.</li>
-        <li><b>Power:</b> any USB-C charger is enough. The whole build draws well under 1 A at 5 V.</li>
+        <li><b>Power:</b> any USB-C charger is enough. The whole build draws well under 0.5 A at 5 V.</li>
       </ul>
     </div>
     <div class="fact">
@@ -505,9 +478,9 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
       <ul>
         <li>There's no mains wiring: the USB-C charger is double insulated and needs no earth. Unplug it whenever you change the wiring.</li>
         <li>Connect GND first, then +5 V, then the signal wires. Disconnect in reverse order.</li>
-        <li>With the supply on, each board's USB-C socket already has about 4.7 V on it, and a computer's USB-C port may refuse to connect to a socket that is already powered. Connect the S3 through something that stays plugged into the computer, such as a USB hub, a dock, or a USB-C to USB-A adapter with an A-to-C cable, and plug and unplug only at the board end. Then the order doesn't matter. With a direct C-to-C cable, plug it in before switching the supply on.</li>
-        <li>Each diode drops about 0.3 V: the S3 gets about 4.7–4.9 V, and the H2, behind two diodes, about 4.4 V. Both are fine.</li>
-        <li>If the charger cuts out the moment you plug it in, the 1000 µF capacitor's inrush is the likely cause; try 470 µF.</li>
+        <li>Power and the console share the S3's USB-C port. Swap the charger for your computer to pair, and back afterwards; Glugg restarts each time and keeps its pairings.</li>
+        <li>The S3 gets the charger's 5 V; the H2, behind its diode, about 4.7 V. Both are fine.</li>
+        <li>If the charger or a computer's USB port cuts out the moment you plug in, the 1000 µF capacitor's inrush is the likely cause. 100–220 µF is plenty for the stick at 25% brightness.</li>
       </ul>
     </div>
   </div>
@@ -671,7 +644,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
       <h3>Toolchain and hardware check</h3>
       <p>Install ESP-IDF v5.5.5 and esp-matter v1.6. Confirm the S3's flash and PSRAM with <code>esptool.py flash_id</code>. Flash <code>ot_rcp</code> to the H2 over its USB, configured to talk over the TX/RX pins (UART0) at 460 800 baud, the default on both sides. Wire everything as above. Flash a small test program to the S3 that steps through all 8 LEDs on GPIO13 with a brightness cap.</p>
       <p class="status"><span class="sev med">Mostly done</span><span>On 6 Oct the S3 checked out as an ESP32-S3-PICO-1 with 8 MB flash and 8 MB octal PSRAM, the LED test ran on the S3, and the H2 got its radio firmware, all on the bench with USB power. Still open: the checkpoint below on the final USB-C power wiring. Earlier: ESP-IDF v5.5.5 and esp-matter v1.6 are installed on the build machine. esp-matter's installer needed a one-line fix for Python 3.13. The parts arrived on 6 Oct. The LED test firmware is built for both boards. The H2's radio firmware is built too: ESP-IDF's <code>ot_rcp</code> from the same tree, on its TX/RX pins (GPIO24/23) at 460 800 baud. Order of work: solder the headers, check the S3's flash and PSRAM, run the LED test on the S3, flash the H2, wire the radio link, then flash the controller.</span></p>
-      <p class="gate"><b>Checkpoint</b>All 8 LEDs show the right colours on supply power, with USB plugged in at the same time, and without flicker. The console attaches through a hub whichever of supply and cable goes first. The S3 reports 8 MB of PSRAM.</p>
+      <p class="gate"><b>Checkpoint</b>All 8 LEDs show the right colours without flicker, both on the charger and with the Mac powering the unit through the S3's USB-C port. The S3 reports 8 MB of PSRAM.</p>
     </div></div>
     <div class="phase"><span class="n">1</span><div class="body">
       <h3>Offline Thread network and lookup service</h3>
@@ -703,13 +676,13 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     </div></div>
     <div class="phase"><span class="n">5</span><div class="body">
       <h3>Enclosure and handover</h3>
-      <p>Put the boards and the USB-C breakout in an enclosure, strain-relieve the USB-C cable, and tidy the wiring. Write a README covering pairing, removal and reflashing. With 8 MB of flash, over-the-air updates become an option later.</p>
+      <p>Put the boards in an enclosure with the S3's USB-C port reachable for the charger and the console, strain-relieve the cable, and tidy the wiring. Write a README covering pairing, removal and reflashing. With 8 MB of flash, over-the-air updates become an option later.</p>
     </div></div>
     <div class="phase"><span class="n">6</span><div class="body">
       <h3>One unit per room</h3>
       <p>Build one Glugg per room, each for about 30 windows. Same firmware and wiring, with these changes, sized from the memory each sensor used in Phase 4:</p>
       <ul>
-        <li><b>Slots and LEDs:</b> about 30 slots, and a WS2812 strip of about 30 LEDs in place of the 8-LED stick, on the same GPIO13 and 74HCT125. All 30 lit amber draws about 0.2 A, so the supply stays the same. The saved slot table gets a new version and is migrated.</li>
+        <li><b>Slots and LEDs:</b> about 30 slots, and a WS2812 strip of about 30 LEDs in place of the 8-LED stick, on the same GPIO13 and 74HCT125. All 30 lit amber draws about 0.2 A at 25% brightness and 0.4 A at 50%, so the unit can still run through the S3's USB-C port (keep the total under about 1 A). Full brightness would need the LEDs fed straight from the charger. The saved slot table gets a new version and is migrated.</li>
         <li><b>Thread:</b> the S3's child table goes from 10 to at least 32. One room is very likely within direct radio range of its S3, so no extra Thread router is needed; check each sensor's link quality with <code>matter esp ot_cli child table</code>.</li>
         <li><b>Matter:</b> the secure session pool goes from 17 to about 40, with the exchange and handshake pools to match. Reconnects after a power cut are staggered, about 8 sensors at a time, so recovery takes a minute or two instead of seconds.</li>
         <li><b>Pairing:</b> <code>pair &lt;code&gt; &lt;slot&gt;</code>, so window 14 can be LED 14 instead of the lowest free slot.</li>
@@ -812,8 +785,8 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <div class="fact">
       <h3>USB-C power</h3>
       <ul>
-        <li>A USB-C device with 5.1 kΩ pull-downs on CC1 and CC2 gets 5 V from any USB-C charger, at the current the charger advertises (usually up to 3 A)</li>
-        <li>Without a Power Delivery chip it can never get more than 5 V. A PD trigger board negotiates 9–20 V unless it's set to 5 V.</li>
+        <li>A USB-C device like the S3-Zero gets 5 V from any USB-C charger, at the current the charger advertises (usually up to 3 A)</li>
+        <li>The S3-Zero passes it straight to its 5V pin, through its USB-C socket and a trace of undocumented width, so stay under about 1 A</li>
         <li>GaN chargers are double insulated (Class II), so no earth is needed</li>
       </ul>
       <p class="src muted">USB Type-C and USB Power Delivery specifications</p>
