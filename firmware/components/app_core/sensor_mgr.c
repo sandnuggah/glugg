@@ -69,17 +69,25 @@ void sensor_mgr_set_radio_failed(sensor_mgr_t *m)
     m->radio_failed = true;
 }
 
-sensor_mgr_err_t sensor_mgr_begin_pairing(sensor_mgr_t *m, int *slot, uint64_t *node_id)
+sensor_mgr_err_t sensor_mgr_begin_pairing(sensor_mgr_t *m, int requested_slot, int *slot, uint64_t *node_id)
 {
+    if (requested_slot != -1 && !valid_slot(requested_slot)) {
+        return SENSOR_MGR_BAD_SLOT;
+    }
     if (!m->network_ready) {
         return SENSOR_MGR_NOT_READY;
     }
     if (m->pairing_slot >= 0) {
         return SENSOR_MGR_BUSY;
     }
-    int free_slot = slot_table_lowest_free(&m->table);
+    int free_slot = requested_slot;
     if (free_slot < 0) {
-        return SENSOR_MGR_FULL;
+        free_slot = slot_table_lowest_free(&m->table);
+        if (free_slot < 0) {
+            return SENSOR_MGR_FULL;
+        }
+    } else if (m->table.slot[free_slot].used) {
+        return SENSOR_MGR_SLOT_USED;
     }
     m->pairing_slot = free_slot;
     m->pairing_node_id = slot_table_take_node_id(&m->table);
@@ -114,6 +122,24 @@ sensor_mgr_err_t sensor_mgr_remove(sensor_mgr_t *m, int slot, uint64_t *node_id)
     return SENSOR_MGR_OK;
 }
 
+sensor_mgr_err_t sensor_mgr_move(sensor_mgr_t *m, int from, int to)
+{
+    if (!valid_slot(from) || !valid_slot(to) || from == to) {
+        return SENSOR_MGR_BAD_SLOT;
+    }
+    if (m->pairing_slot == from || m->pairing_slot == to) {
+        return SENSOR_MGR_BUSY;
+    }
+    if (!m->table.slot[from].used) {
+        return SENSOR_MGR_NOT_PAIRED;
+    }
+    slot_table_move(&m->table, from, to);
+    sensor_state_t tmp = m->sensor[from];
+    m->sensor[from] = m->sensor[to];
+    m->sensor[to] = tmp;
+    return SENSOR_MGR_OK;
+}
+
 void sensor_mgr_clear_all(sensor_mgr_t *m)
 {
     for (int i = 0; i < SLOT_COUNT; i++) {
@@ -141,6 +167,10 @@ int sensor_mgr_next_subscribe(sensor_mgr_t *m, uint32_t now_ms)
     if (!m->network_ready) {
         return -1; // Matter can't look sensors up yet, so every attempt would fail and back off
     }
+    int in_flight = 0;
+    for (int i = 0; i < SLOT_COUNT; i++) {
+        in_flight += paired(m, i) && m->sensor[i].attempt_in_flight;
+    }
     for (int i = 0; i < SLOT_COUNT; i++) {
         sensor_state_t *s = paired(m, i);
         if (!s) {
@@ -155,6 +185,9 @@ int sensor_mgr_next_subscribe(sensor_mgr_t *m, uint32_t now_ms)
                 return start_attempt(s, i, now_ms);
             }
             continue;
+        }
+        if (in_flight >= SENSOR_MAX_ATTEMPTS_IN_FLIGHT) {
+            continue; // the clamp above still runs for every sensor; new attempts wait for a free place
         }
         if (is_stale(s, now_ms)) {
             // Already silent for 2 x max interval, so it stays "not heard from" without a new grace period.
@@ -273,11 +306,11 @@ static void fmt_duration(char *buf, size_t len, uint32_t ms)
 void sensor_mgr_format_slot(const sensor_mgr_t *m, int slot, uint32_t now_ms, char *buf, size_t len)
 {
     if (valid_slot(slot) && slot == m->pairing_slot) {
-        snprintf(buf, len, "%d  pairing  node 0x%" PRIx64, slot + 1, m->pairing_node_id);
+        snprintf(buf, len, "%2d  pairing  node 0x%" PRIx64, slot + 1, m->pairing_node_id);
         return;
     }
     if (!valid_slot(slot) || !m->table.slot[slot].used) {
-        snprintf(buf, len, "%d  empty", slot + 1);
+        snprintf(buf, len, "%2d  empty", slot + 1);
         return;
     }
     const sensor_state_t *s = &m->sensor[slot];
@@ -300,5 +333,5 @@ void sensor_mgr_format_slot(const sensor_mgr_t *m, int slot, uint32_t now_ms, ch
         fmt_duration(d2, sizeof(d2), reached(now_ms, s->next_attempt_ms) ? 0 : s->next_attempt_ms - now_ms);
         snprintf(detail, sizeof(detail), "down %s, retry in %s", d1, d2);
     }
-    snprintf(buf, len, "%d  %-7s  node 0x%" PRIx64 "  %s", slot + 1, state, m->table.slot[slot].node_id, detail);
+    snprintf(buf, len, "%2d  %-7s  node 0x%" PRIx64 "  %s", slot + 1, state, m->table.slot[slot].node_id, detail);
 }

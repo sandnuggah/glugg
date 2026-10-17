@@ -63,3 +63,7 @@ CONFIG_OPENTHREAD_RCP_UART=y
 CONFIG_OPENTHREAD_UART_PIN_MANUAL=y
 CONFIG_OPENTHREAD_UART_RX_PIN=23
 CONFIG_OPENTHREAD_UART_TX_PIN=24
+
+# Room for up to 64 sleepy sensors with a message waiting at once (Phase 6; max 100). When it overflows, OpenThread
+# marks every poll as pending, which only costs the sensors battery.
+CONFIG_IEEE802154_PENDING_TABLE_SIZE=64

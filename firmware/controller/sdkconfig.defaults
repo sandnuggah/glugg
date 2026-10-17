@@ -8,6 +8,8 @@ CONFIG_OPENTHREAD_BORDER_ROUTER=y
 # Offline: Matter resolves sensors through the S3's own SRP/DNS-SD server (sim/README.md)
 CONFIG_OPENTHREAD_SRP_CLIENT=y
 CONFIG_OPENTHREAD_DNS_CLIENT=y
+# Up to 64 sensors attach directly to the S3 as sleepy children (Phase 6); OpenThread allows up to 511.
+CONFIG_OPENTHREAD_MLE_MAX_CHILDREN=70
 CONFIG_THREAD_TASK_STACK_SIZE=8192
 
 #enable BT

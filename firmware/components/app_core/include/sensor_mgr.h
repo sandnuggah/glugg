@@ -24,6 +24,9 @@ extern "C" {
 #define SENSOR_UNREACHABLE_AFTER_MS  (2u * 60u * 1000u)
 // A subscription with no report for 2 x max interval + this margin is treated as dead.
 #define SENSOR_STALE_MARGIN_MS       30000u
+// At most this many subscribe attempts at once, so 64 sensors reconnecting after a power cut don't run Matter out of
+// handshake sessions (CHIP_CONFIG_UNAUTHENTICATED_CONNECTION_POOL_SIZE) and exchanges. The rest wait their turn.
+#define SENSOR_MAX_ATTEMPTS_IN_FLIGHT 8
 // A subscribe attempt Matter never reported back on (neither established nor down) is abandoned and retried.
 #define SENSOR_ATTEMPT_TIMEOUT_MS    (5u * 60u * 1000u)
 // "Down for" stops counting here, so a sensor that stays down past the 49.7-day clock wrap keeps blinking blue.
@@ -64,6 +67,7 @@ typedef enum {
     SENSOR_MGR_NOT_PAIRED, // the slot is empty
     SENSOR_MGR_BAD_SLOT,
     SENSOR_MGR_NOT_READY,  // the Thread network isn't up yet
+    SENSOR_MGR_SLOT_USED,  // pairing into a slot that already has a sensor
 } sensor_mgr_err_t;
 
 // Starts from a loaded (or freshly initialised) table. Nothing is subscribed until sensor_mgr_set_network_ready().
@@ -75,20 +79,23 @@ void sensor_mgr_set_network_ready(sensor_mgr_t *m, uint32_t now_ms);
 // The Thread radio stopped answering. Every LED shows it until the S3 restarts.
 void sensor_mgr_set_radio_failed(sensor_mgr_t *m);
 
-// Reserves the lowest free slot and a new node ID for commissioning. Persist m->table afterwards.
-// Refuses with SENSOR_MGR_NOT_READY before the network is up.
-sensor_mgr_err_t sensor_mgr_begin_pairing(sensor_mgr_t *m, int *slot, uint64_t *node_id);
+// Reserves `requested_slot` (0-based), or the lowest free slot if it is -1, and a new node ID for commissioning.
+// Persist m->table afterwards. Refuses with SENSOR_MGR_NOT_READY before the network is up.
+sensor_mgr_err_t sensor_mgr_begin_pairing(sensor_mgr_t *m, int requested_slot, int *slot, uint64_t *node_id);
 // On success the slot becomes owned by the new node and is due for a subscribe. Persist m->table afterwards.
 void sensor_mgr_end_pairing(sensor_mgr_t *m, bool success, uint32_t now_ms);
 
 // Frees a slot. *node_id tells the glue which node to drop subscriptions for and unpair. Persist afterwards.
 sensor_mgr_err_t sensor_mgr_remove(sensor_mgr_t *m, int slot, uint64_t *node_id);
+// Puts the sensor in `from` on slot `to`. If `to` has a sensor, the two swap. Each sensor keeps its state, so its LED
+// simply moves. Refused while either slot is being paired. Persist afterwards; the glue swaps its subscriptions too.
+sensor_mgr_err_t sensor_mgr_move(sensor_mgr_t *m, int from, int to);
 // Empties every slot and cancels pairing. Node IDs keep counting up. Persist afterwards.
 void sensor_mgr_clear_all(sensor_mgr_t *m);
 
 // Returns a slot the glue should subscribe now (dropping any subscription it still holds for it), or -1.
 // Marks the slot as in flight; call repeatedly until -1. Also detects silent subscriptions and attempts that never
-// finished, and returns them. Call at least once a day (the glue's 1 s tick does); it also keeps the clock clamps
+// finished, and returns them. No more than SENSOR_MAX_ATTEMPTS_IN_FLIGHT attempts run at once, lowest slot first. Call at least once a day (the glue's 1 s tick does); it also keeps the clock clamps
 // fresh. Returns -1 until the network is ready.
 int sensor_mgr_next_subscribe(sensor_mgr_t *m, uint32_t now_ms);
 
@@ -107,7 +114,7 @@ bool sensor_mgr_is_unreachable(const sensor_mgr_t *m, int slot, uint32_t now_ms)
 // that hasn't reported since boot or pairing shows LED_SLOT_WAITING until it reports or becomes unreachable.
 led_slot_state_t sensor_mgr_led_state(const sensor_mgr_t *m, int slot, uint32_t now_ms);
 
-// One line for the `list` command, e.g. "3  open     node 0x102  heard 12s ago". Slot numbers print 1-based.
+// One line for the `list` command, e.g. " 3  open     node 0x102  heard 12s ago". Slot numbers print 1-based.
 void sensor_mgr_format_slot(const sensor_mgr_t *m, int slot, uint32_t now_ms, char *buf, size_t len);
 
 #ifdef __cplusplus

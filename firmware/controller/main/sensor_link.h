@@ -14,11 +14,15 @@ void sensor_link_start();
 // Matter can now look sensors up (DeviceEventType::kDnssdInitialized). Subscribing and pairing start here.
 void sensor_link_network_ready();
 
-// Starts commissioning into the lowest free slot. The result is logged when commissioning finishes.
-esp_err_t sensor_link_pair(const pairing_code_t *code);
+// Starts commissioning into `requested_slot` (0-based), or the lowest free slot if it is -1. The result is logged
+// when commissioning finishes.
+esp_err_t sensor_link_pair(const pairing_code_t *code, int requested_slot);
 
 // Frees the slot at once, drops the subscription and asks the sensor to leave our fabric (best effort).
 esp_err_t sensor_link_remove(int slot);
+
+// Puts the sensor in `from` on slot `to` (swapping with the sensor there, if any) and saves the table.
+esp_err_t sensor_link_move(int from, int to);
 
 // Sends Identify (10 s) to the sensor, which blinks its own LED if it supports the Identify cluster.
 esp_err_t sensor_link_identify(int slot);

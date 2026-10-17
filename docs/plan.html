@@ -149,7 +149,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
 <div class="wrap">
 
 <header class="top">
-  <span class="eyebrow">Project plan · 17 Oct 2026 · rev 21</span>
+  <span class="eyebrow">Project plan · 17 Oct 2026 · rev 22</span>
   <h1>Glugg</h1>
   <p class="lede">Glugg, Swedish for a small opening in a wall, keeps watch over the windows of your wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT window sensors and lights one LED per open window on an 8×8 LED panel. Your ESP32-H2 is its Thread radio. Sensor 1 gets LED 1, sensor 2 gets LED 2, in the order they are added. The workshop has four rooms with about 30 windows each, so the finished system is one Glugg per room, each showing its own windows.</p>
   <div class="parts">
@@ -596,7 +596,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <div class="state"><span class="px fail"></span><span><b>Thread radio not answering</b><br>The whole panel red for 3 s, then the S3 restarts. Check the UART wires and the H2's firmware.</span></div>
   </div>
   <div class="col">
-    <p class="muted" style="font-size:0.92rem">Removing a sensor frees its slot, and the next sensor you pair takes the lowest free slot. The other sensors keep their LEDs. At most 8 sensors for now, on the panel's first row (LED 1 is the first LED after DIN); the other 56 LEDs stay off except for the startup ring and the red radio warning. Room units will take up to 64, one per LED (Phase 6). Slots are numbered 1–8 on the console. When a sleepy sensor's connection drops and comes back as part of normal operation, it gets a new 2-minute grace period, so routine reconnects don't flash blue.</p>
+    <p class="muted" style="font-size:0.92rem">Removing a sensor frees its slot, and the next sensor you pair takes the lowest free slot. The other sensors keep their LEDs. Up to 64 sensors, one per LED (LED 1 is the first LED after DIN, then along the panel's data chain); LEDs without a sensor stay off except for the startup ring and the red radio warning. Slots are numbered 1–64 on the console. When a sleepy sensor's connection drops and comes back as part of normal operation, it gets a new 2-minute grace period, so routine reconnects don't flash blue.</p>
   </div>
 </section>
 
@@ -698,10 +698,10 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
         <li><b>Thread:</b> the S3's child table goes from 10 to about 70 (OpenThread allows up to 511). The H2's table of sensors with a message waiting (20 entries, up to 100) only needs to grow if many sensors reconnect at once; when it overflows, the sensors stay awake slightly longer but nothing fails. Traffic is negligible: 64 sensors check in about 4 times a second in total, on a 250 kbit/s radio.</li>
         <li><b>Range:</b> every sensor attaches directly to the H2, so all 64 must be within its reach. One room is very likely fine; check each sensor's link quality with <code>matter esp ot_cli child table</code>. If some can't reach it, add a Thread router: a spare ESP32-H2 running OpenThread's router firmware, given the network key once, with no Matter pairing needed.</li>
         <li><b>Matter:</b> the secure session pool goes from 17 to about 72, the controller's connection limit from 8 to 64, and the session resumption cache to 64, so reconnects stay quick. Measured on 17 Oct: a build with all the 64-sensor settings adds about 123 KB, all of it in the 8 MB PSRAM, and the running unit uses about 0.5 KB of internal RAM per sensor (about 40 KB of the 215 KB free for 64). Memory is not a limit. Reconnects after a power cut are staggered, about 8 sensors at a time, so all 64 are back within 2–3 minutes.</li>
-        <li><b>Pairing:</b> <code>pair &lt;code&gt; &lt;slot&gt;</code>, so window 14 can be LED 14 instead of the lowest free slot. With 64 windows, choosing the position is a must.</li>
+        <li><b>Pairing:</b> <code>pair &lt;code&gt; slot &lt;n&gt;</code>, so window 14 can be LED 14 instead of the lowest free slot, and <code>move &lt;from&gt; &lt;to&gt;</code> to rearrange later without re-pairing. With 64 windows, choosing the position is a must.</li>
         <li><b>Neighbours:</b> each unit runs its own Thread network with its own keys. Two rooms may pick the same channel; they only share airtime, which is tiny at this load.</li>
       </ul>
-      <p class="status"><span class="sev med">Not started</span><span>Decided on 1 Oct 2026; target raised from about 30 to 64 sensors on 17 Oct. Comes after Phase 4.</span></p>
+      <p class="status"><span class="sev med">Firmware written</span><span>Decided on 1 Oct 2026; target raised from about 30 to 64 sensors on 17 Oct. On 17 Oct the firmware went to 64 slots, with today's pairings kept across the upgrade, a cap of 8 reconnects at once, <code>pair &lt;code&gt; slot &lt;n&gt;</code>, <code>move &lt;from&gt; &lt;to&gt;</code> (swaps if the target LED is used), and a shorter <code>list</code>. The H2 got room for 64 sensors with a message waiting. Host tests pass; next is running it on the protoboard.</span></p>
       <p class="gate"><b>Checkpoint</b>One room unit runs as many sensors as the room has (up to 64) for 48 hours with no stuck LEDs, and recovers every sensor on its own after a power cut within a few minutes. Then build the other units.</p>
     </div></div>
   </div>
@@ -775,7 +775,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <p class="muted">Defaults picked while writing the firmware. Any of them can change.</p>
   </div>
   <div class="decisions">
-    <div class="decision"><h3>Console commands</h3><p>Slots are numbered 1–8. <code>factory-reset</code> needs the word <code>confirm</code>: it asks each sensor to leave, waits until they all answer (at most 2 minutes, since sleepy sensors answer when they wake), erases the slots, the Matter fabric and the Thread network, and reboots. <code>identify &lt;slot&gt;</code> makes the sensor itself blink for 10 s; the stick doesn't change.</p></div>
+    <div class="decision"><h3>Console commands</h3><p>Slots are numbered 1–64. <code>pair &lt;code&gt; slot &lt;n&gt;</code> picks the LED (the word <code>slot</code> marks it, because a code may be typed with spaces), and <code>move &lt;from&gt; &lt;to&gt;</code> puts a sensor on another LED, swapping if that one is used. <code>list</code> shows only the paired sensors. <code>factory-reset</code> needs the word <code>confirm</code>: it asks each sensor to leave, waits until they all answer (at most 2 minutes, since sleepy sensors answer when they wake), erases the slots, the Matter fabric and the Thread network, and reboots. <code>identify &lt;slot&gt;</code> makes the sensor itself blink for 10 s; the stick doesn't change.</p></div>
     <div class="decision"><h3>Timings</h3><p>Blue after 2 minutes without a connection. Retries every 10 s, doubling to at most 5 minutes. Subscriptions ask for a report at least every 5 minutes, but MYGGBETT picks 30, so a silent sensor turns blue after about 33 minutes. Lookups give up after 15 s instead of Matter's 45. Pairing gives up after 5 minutes.</p></div>
     <div class="decision"><h3>Certificates</h3><p>The firmware trusts every production root certificate in the CSA's registry, not only IKEA's, and none of Matter's test certificates.</p></div>
   </div>

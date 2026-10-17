@@ -50,6 +50,13 @@ void slot_table_clear(slot_table_t *t, int slot)
     t->slot[slot].node_id = 0;
 }
 
+void slot_table_move(slot_table_t *t, int from, int to)
+{
+    slot_t tmp = t->slot[from];
+    t->slot[from] = t->slot[to];
+    t->slot[to] = tmp;
+}
+
 static void put_u64(uint8_t *p, uint64_t v)
 {
     for (int i = 0; i < 8; i++) {
@@ -93,8 +100,11 @@ bool slot_table_next_id_valid(uint64_t id)
 
 bool slot_table_decode(slot_table_t *t, const uint8_t *buf, size_t len)
 {
-    if (len != SLOT_TABLE_BLOB_SIZE || buf[0] != MAGIC0 || buf[1] != MAGIC1 || buf[2] != VERSION ||
-        buf[3] != SLOT_COUNT) {
+    if (len < 4 || buf[0] != MAGIC0 || buf[1] != MAGIC1 || buf[2] != VERSION) {
+        return false;
+    }
+    int count = buf[3];
+    if (count < 1 || count > SLOT_COUNT || len != (size_t)(12 + count * 9)) {
         return false;
     }
     slot_table_t tmp;
@@ -104,7 +114,7 @@ bool slot_table_decode(slot_table_t *t, const uint8_t *buf, size_t len)
         return false;
     }
     const uint8_t *p = buf + 12;
-    for (int i = 0; i < SLOT_COUNT; i++, p += 9) {
+    for (int i = 0; i < count; i++, p += 9) {
         if (p[0] > 1) {
             return false;
         }

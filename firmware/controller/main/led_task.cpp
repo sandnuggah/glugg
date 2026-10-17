@@ -11,7 +11,7 @@
 static const char *TAG = "led_task";
 
 #define LED_GPIO       13
-// An 8 x 8 WS2812 panel. Slot n lights pixel n, so the slots are the first row along the data chain (DIN end).
+// An 8 x 8 WS2812 panel. Slot n lights pixel n along the data chain, from the DIN end, so 64 slots fill the panel.
 #define PANEL_LEDS     (LED_PATTERN_PANEL_SIZE * LED_PATTERN_PANEL_SIZE)
 #define FRAME_MS       20
 #define TASK_STACK     3072
@@ -32,7 +32,7 @@ static void led_task(void *)
             }
         }
         // Before the network is up the whole panel shows the startup ring; a radio failure turns it all red.
-        // Otherwise only the slot pixels are lit. Rows are consecutive pixels, so pixel i is at (i % 8, i / 8),
+        // Otherwise each pixel shows its slot. Rows are consecutive pixels, so pixel i is at (i % 8, i / 8),
         // and the ring looks the same whichever way a row runs.
         bool starting = false, failed = false;
         for (int i = 0; i < SLOT_COUNT; i++) {

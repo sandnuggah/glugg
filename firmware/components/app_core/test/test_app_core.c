@@ -212,6 +212,48 @@ static void test_slot_table(void)
     CHECK(!slot_table_decode(&probe, bad, sizeof(bad)));
     CHECK(memcmp(&probe, &untouched, sizeof(probe)) == 0);
 
+    // A blob saved by the 8-slot firmware still loads: its sensors keep their slots, the rest are empty.
+    uint8_t old8[12 + 8 * 9] = {'W', 'S', 1, 8};
+    uint64_t old_next = SLOT_FIRST_NODE_ID + 3;
+    for (int i = 0; i < 8; i++) {
+        old8[4 + i] = (uint8_t)(old_next >> (8 * i));
+    }
+    old8[12 + 0 * 9] = 1;
+    old8[12 + 0 * 9 + 1] = (uint8_t)SLOT_FIRST_NODE_ID;
+    old8[12 + 0 * 9 + 2] = (uint8_t)(SLOT_FIRST_NODE_ID >> 8);
+    old8[12 + 1 * 9] = 1;
+    old8[12 + 1 * 9 + 1] = (uint8_t)(SLOT_FIRST_NODE_ID + 2);
+    old8[12 + 1 * 9 + 2] = (uint8_t)((SLOT_FIRST_NODE_ID + 2) >> 8);
+    slot_table_t mig;
+    CHECK(slot_table_decode(&mig, old8, sizeof(old8)));
+    CHECK(mig.next_node_id == old_next && mig.slot[0].used && mig.slot[0].node_id == SLOT_FIRST_NODE_ID);
+    CHECK(mig.slot[1].used && mig.slot[1].node_id == SLOT_FIRST_NODE_ID + 2);
+    for (int i = 2; i < SLOT_COUNT; i++) {
+        CHECK(!mig.slot[i].used && mig.slot[i].node_id == 0);
+    }
+    CHECK(slot_table_lowest_free(&mig) == 2);
+    uint8_t blob64[SLOT_TABLE_BLOB_SIZE];
+    CHECK(slot_table_encode(&mig, blob64, sizeof(blob64)) == SLOT_TABLE_BLOB_SIZE && blob64[3] == SLOT_COUNT);
+    // The stored count must match the length, and lie in 1..SLOT_COUNT.
+    probe = untouched;
+    CHECK(!slot_table_decode(&probe, old8, sizeof(old8) - 1));
+    old8[3] = 9;
+    CHECK(!slot_table_decode(&probe, old8, sizeof(old8)));
+    old8[3] = 0;
+    CHECK(!slot_table_decode(&probe, old8, 12));
+    memcpy(bad, blob, sizeof(bad));
+    bad[3] = SLOT_COUNT + 1;
+    CHECK(!slot_table_decode(&probe, bad, sizeof(bad)));
+    CHECK(!slot_table_decode(&probe, old8, 3));
+    CHECK(memcmp(&probe, &untouched, sizeof(probe)) == 0);
+
+    // move swaps owners, with or without a sensor on the other side.
+    slot_table_move(&mig, 1, 40);
+    CHECK(!mig.slot[1].used && mig.slot[40].used && mig.slot[40].node_id == SLOT_FIRST_NODE_ID + 2);
+    slot_table_move(&mig, 40, 0);
+    CHECK(mig.slot[0].node_id == SLOT_FIRST_NODE_ID + 2 && mig.slot[40].node_id == SLOT_FIRST_NODE_ID);
+    CHECK(slot_table_find_node(&mig, SLOT_FIRST_NODE_ID) == 40);
+
     // Random corruption never crashes and never yields a table with duplicate IDs.
     srand(2);
     for (int i = 0; i < 20000; i++) {
@@ -285,7 +327,7 @@ static void test_sensor_subscriptions(uint32_t t0)
     CHECK(sensor_mgr_led_state(&m, 5, t0 - 1) == LED_SLOT_STARTING);
     char line[128];
     sensor_mgr_format_slot(&m, 0, t0 - 1, line, sizeof(line));
-    CHECK(strstr(line, "1  waiting") == line && strstr(line, "waiting for the Thread network"));
+    CHECK(strstr(line, " 1  waiting") == line && strstr(line, "waiting for the Thread network"));
 
     // Both paired sensors are due once it is up; empty slots never are. The grace period starts now.
     sensor_mgr_set_network_ready(&m, t0);
@@ -295,7 +337,7 @@ static void test_sensor_subscriptions(uint32_t t0)
     CHECK(sensor_mgr_led_state(&m, 0, t0) == LED_SLOT_WAITING); // no report yet
     CHECK(sensor_mgr_led_state(&m, 5, t0) == LED_SLOT_EMPTY);
     sensor_mgr_format_slot(&m, 0, t0 + 3000, line, sizeof(line));
-    CHECK(strstr(line, "1  waiting") == line && strstr(line, "subscribing (down 3s)"));
+    CHECK(strstr(line, " 1  waiting") == line && strstr(line, "subscribing (down 3s)"));
     sensor_mgr_set_network_ready(&m, t0 + 1000); // a repeat changes nothing
     CHECK(sensor_mgr_next_subscribe(&m, t0 + 1000) == -1);
 
@@ -312,7 +354,7 @@ static void test_sensor_subscriptions(uint32_t t0)
     CHECK(!sensor_mgr_is_unreachable(&m, 1, t0 + 2 * MIN - 1));
     CHECK(sensor_mgr_led_state(&m, 1, t0 + 2 * MIN) == LED_SLOT_UNREACHABLE);
     sensor_mgr_format_slot(&m, 1, t0 + 25000, line, sizeof(line));
-    CHECK(strstr(line, "2  waiting") == line && strstr(line, "down 25s, retry in"));
+    CHECK(strstr(line, " 2  waiting") == line && strstr(line, "down 25s, retry in"));
     // A second report of the same failure doesn't push the retry further out.
     uint32_t retry_at = m.sensor[1].next_attempt_ms;
     sensor_mgr_on_subscription_down(&m, 1, t0 + 21000, UINT32_MAX);
@@ -358,11 +400,11 @@ static void test_sensor_subscriptions(uint32_t t0)
     CHECK(sensor_mgr_is_unreachable(&m, 1, t0 + 62 * MIN));
 
     sensor_mgr_format_slot(&m, 0, now + 175000, line, sizeof(line));
-    CHECK(strstr(line, "1  closed") == line && strstr(line, "node 0x100") && strstr(line, "heard 5s ago"));
+    CHECK(strstr(line, " 1  closed") == line && strstr(line, "node 0x100") && strstr(line, "heard 5s ago"));
     sensor_mgr_format_slot(&m, 1, t0 + 62 * MIN, line, sizeof(line));
-    CHECK(strstr(line, "2  LOST") == line && strstr(line, "down 2m"));
+    CHECK(strstr(line, " 2  LOST") == line && strstr(line, "down 2m"));
     sensor_mgr_format_slot(&m, 7, t0, line, sizeof(line));
-    CHECK(strcmp(line, "8  empty") == 0);
+    CHECK(strcmp(line, " 8  empty") == 0);
 
     // An event stamped just after the caller read its clock is "just now", not 49 days ago.
     sensor_mgr_on_heard(&m, 0, now + 200000);
@@ -420,7 +462,7 @@ static void test_sensor_watchdogs(uint32_t t0)
     CHECK(always_lost);
     char line[128];
     sensor_mgr_format_slot(&m, 0, now, line, sizeof(line));
-    CHECK(strstr(line, "1  LOST") == line && strstr(line, "down 480h"));
+    CHECK(strstr(line, " 1  LOST") == line && strstr(line, "down 480h"));
 }
 
 static void test_sensor_pairing(void)
@@ -433,37 +475,37 @@ static void test_sensor_pairing(void)
     int slot;
     uint64_t node;
     // No pairing before the Thread network is up, and no node ID is used up by trying.
-    CHECK(sensor_mgr_begin_pairing(&m, &slot, &node) == SENSOR_MGR_NOT_READY);
+    CHECK(sensor_mgr_begin_pairing(&m, -1, &slot, &node) == SENSOR_MGR_NOT_READY);
     CHECK(m.table.next_node_id == SLOT_FIRST_NODE_ID);
     sensor_mgr_set_network_ready(&m, 0);
-    CHECK(sensor_mgr_begin_pairing(&m, &slot, &node) == SENSOR_MGR_OK && slot == 0 && node == SLOT_FIRST_NODE_ID);
+    CHECK(sensor_mgr_begin_pairing(&m, -1, &slot, &node) == SENSOR_MGR_OK && slot == 0 && node == SLOT_FIRST_NODE_ID);
     CHECK(sensor_mgr_led_state(&m, 0, 0) == LED_SLOT_PAIRING);
     CHECK(sensor_mgr_led_state(&m, 1, 0) == LED_SLOT_EMPTY);
     CHECK(sensor_mgr_led_state(&m, -1, 0) == LED_SLOT_EMPTY);
     char line[64];
     sensor_mgr_format_slot(&m, 0, 0, line, sizeof(line));
-    CHECK(strcmp(line, "1  pairing  node 0x100") == 0);
-    CHECK(sensor_mgr_begin_pairing(&m, &slot, &node) == SENSOR_MGR_BUSY);
+    CHECK(strcmp(line, " 1  pairing  node 0x100") == 0);
+    CHECK(sensor_mgr_begin_pairing(&m, -1, &slot, &node) == SENSOR_MGR_BUSY);
     CHECK(sensor_mgr_next_subscribe(&m, 0) == -1);
 
     // Failure frees the slot but the node ID is not reused.
     sensor_mgr_end_pairing(&m, false, 100);
     CHECK(sensor_mgr_led_state(&m, 0, 100) == LED_SLOT_EMPTY);
-    CHECK(sensor_mgr_begin_pairing(&m, &slot, &node) == SENSOR_MGR_OK && slot == 0 && node == SLOT_FIRST_NODE_ID + 1);
+    CHECK(sensor_mgr_begin_pairing(&m, -1, &slot, &node) == SENSOR_MGR_OK && slot == 0 && node == SLOT_FIRST_NODE_ID + 1);
     sensor_mgr_end_pairing(&m, true, 200);
     CHECK(m.table.slot[0].used && m.table.slot[0].node_id == SLOT_FIRST_NODE_ID + 1);
     CHECK(sensor_mgr_next_subscribe(&m, 200) == 0);
 
     for (int i = 1; i < SLOT_COUNT; i++) {
-        CHECK(sensor_mgr_begin_pairing(&m, &slot, &node) == SENSOR_MGR_OK && slot == i);
+        CHECK(sensor_mgr_begin_pairing(&m, -1, &slot, &node) == SENSOR_MGR_OK && slot == i);
         sensor_mgr_end_pairing(&m, true, 300);
     }
-    CHECK(sensor_mgr_begin_pairing(&m, &slot, &node) == SENSOR_MGR_FULL);
+    CHECK(sensor_mgr_begin_pairing(&m, -1, &slot, &node) == SENSOR_MGR_FULL);
 
     // Removing slot 3 (console "4") frees it for the next pairing.
     CHECK(sensor_mgr_remove(&m, 3, &node) == SENSOR_MGR_OK && node == SLOT_FIRST_NODE_ID + 4);
     CHECK(sensor_mgr_remove(&m, 3, &node) == SENSOR_MGR_NOT_PAIRED);
-    CHECK(sensor_mgr_remove(&m, 8, &node) == SENSOR_MGR_BAD_SLOT);
+    CHECK(sensor_mgr_remove(&m, SLOT_COUNT, &node) == SENSOR_MGR_BAD_SLOT);
     CHECK(sensor_mgr_remove(&m, -1, &node) == SENSOR_MGR_BAD_SLOT);
     CHECK(sensor_mgr_led_state(&m, 3, 400) == LED_SLOT_EMPTY);
 
@@ -473,18 +515,103 @@ static void test_sensor_pairing(void)
     sensor_mgr_on_subscription_down(&m, 3, 400, 0);
     CHECK(sensor_mgr_led_state(&m, 3, 400) == LED_SLOT_EMPTY);
 
-    CHECK(sensor_mgr_begin_pairing(&m, &slot, &node) == SENSOR_MGR_OK && slot == 3);
+    CHECK(sensor_mgr_begin_pairing(&m, -1, &slot, &node) == SENSOR_MGR_OK && slot == 3);
     sensor_mgr_end_pairing(&m, true, 500);
     CHECK(sensor_mgr_led_state(&m, 3, 500) == LED_SLOT_WAITING); // new sensor, nothing reported yet
 
     // Clearing everything mid-pairing (factory-reset) also ends the pairing.
     CHECK(sensor_mgr_remove(&m, 5, &node) == SENSOR_MGR_OK);
-    CHECK(sensor_mgr_begin_pairing(&m, &slot, &node) == SENSOR_MGR_OK && slot == 5);
+    CHECK(sensor_mgr_begin_pairing(&m, -1, &slot, &node) == SENSOR_MGR_OK && slot == 5);
     uint64_t next = m.table.next_node_id;
     sensor_mgr_clear_all(&m);
     CHECK(slot_table_lowest_free(&m.table) == 0 && m.table.next_node_id == next);
     CHECK(m.pairing_slot == -1 && sensor_mgr_led_state(&m, 5, 600) == LED_SLOT_EMPTY);
     CHECK(sensor_mgr_next_subscribe(&m, 600) == -1);
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// sensor_mgr: chosen slots, move, and the cap on simultaneous subscribe attempts
+
+static void test_sensor_slots_and_cap(void)
+{
+    slot_table_t t;
+    slot_table_init(&t);
+    sensor_mgr_t m;
+    sensor_mgr_init(&m, &t, 0);
+    int slot;
+    uint64_t node;
+
+    CHECK(sensor_mgr_begin_pairing(&m, SLOT_COUNT, &slot, &node) == SENSOR_MGR_BAD_SLOT);
+    sensor_mgr_set_network_ready(&m, 0);
+    CHECK(sensor_mgr_begin_pairing(&m, -2, &slot, &node) == SENSOR_MGR_BAD_SLOT);
+    CHECK(sensor_mgr_begin_pairing(&m, 13, &slot, &node) == SENSOR_MGR_OK && slot == 13);
+    // Moves that touch the slot being paired wait.
+    CHECK(sensor_mgr_move(&m, 13, 2) == SENSOR_MGR_BUSY);
+    sensor_mgr_end_pairing(&m, true, 0);
+    CHECK(sensor_mgr_begin_pairing(&m, 13, &slot, &node) == SENSOR_MGR_SLOT_USED);
+    CHECK(m.pairing_slot == -1);
+    CHECK(sensor_mgr_begin_pairing(&m, -1, &slot, &node) == SENSOR_MGR_OK && slot == 0); // lowest free
+    sensor_mgr_end_pairing(&m, true, 0);
+
+    // Slot 13 open and subscribed, slot 0 closed: moving 13 onto 0 swaps them and each LED follows its sensor.
+    CHECK(sensor_mgr_next_subscribe(&m, 0) == 0 && sensor_mgr_next_subscribe(&m, 0) == 13);
+    sensor_mgr_on_subscribed(&m, 13, 60, 10);
+    sensor_mgr_on_state_value(&m, 13, false, 10);
+    sensor_mgr_on_subscribed(&m, 0, 60, 10);
+    sensor_mgr_on_state_value(&m, 0, true, 10);
+    uint64_t node0 = m.table.slot[0].node_id, node13 = m.table.slot[13].node_id;
+    CHECK(sensor_mgr_move(&m, 13, 0) == SENSOR_MGR_OK);
+    CHECK(m.table.slot[0].node_id == node13 && m.table.slot[13].node_id == node0);
+    CHECK(sensor_mgr_led_state(&m, 0, 20) == LED_SLOT_OPEN && sensor_mgr_led_state(&m, 13, 20) == LED_SLOT_CLOSED);
+    CHECK(sensor_mgr_move(&m, 0, 40) == SENSOR_MGR_OK);
+    CHECK(sensor_mgr_led_state(&m, 40, 20) == LED_SLOT_OPEN && sensor_mgr_led_state(&m, 0, 20) == LED_SLOT_EMPTY);
+    CHECK(sensor_mgr_move(&m, 0, 1) == SENSOR_MGR_NOT_PAIRED);
+    CHECK(sensor_mgr_move(&m, 40, 40) == SENSOR_MGR_BAD_SLOT && sensor_mgr_move(&m, 40, SLOT_COUNT) == SENSOR_MGR_BAD_SLOT);
+    CHECK(sensor_mgr_next_subscribe(&m, 20) == -1); // both still subscribed after the moves
+
+    // A full panel after a power cut: never more than 8 attempts at once, lowest slots first.
+    slot_table_init(&t);
+    for (int i = 0; i < SLOT_COUNT; i++) {
+        slot_table_assign(&t, i, slot_table_take_node_id(&t));
+    }
+    sensor_mgr_init(&m, &t, 1000);
+    sensor_mgr_set_network_ready(&m, 1000);
+    for (int i = 0; i < SENSOR_MAX_ATTEMPTS_IN_FLIGHT; i++) {
+        CHECK(sensor_mgr_next_subscribe(&m, 1000) == i);
+    }
+    CHECK(sensor_mgr_next_subscribe(&m, 1000) == -1);
+    // One succeeds and one fails: two places free up, for slots 8 and 9. The failed one backs off.
+    sensor_mgr_on_subscribed(&m, 0, 60, 2000);
+    sensor_mgr_on_subscription_down(&m, 1, 2000, 0);
+    CHECK(sensor_mgr_next_subscribe(&m, 2000) == 8 && sensor_mgr_next_subscribe(&m, 2000) == 9);
+    CHECK(sensor_mgr_next_subscribe(&m, 2000) == -1);
+    // A stuck attempt is still replaced while all 8 places are taken.
+    uint32_t later = 1000 + SENSOR_ATTEMPT_TIMEOUT_MS;
+    CHECK(sensor_mgr_next_subscribe(&m, later) == 2);
+    int in_flight = 0;
+    for (int i = 0; i < SLOT_COUNT; i++) {
+        in_flight += m.sensor[i].attempt_in_flight;
+    }
+    CHECK(in_flight == SENSOR_MAX_ATTEMPTS_IN_FLIGHT);
+    // Everyone eventually gets a turn once the attempts in flight report back.
+    uint32_t now = later;
+    for (int i = 0; i < SLOT_COUNT; i++) {
+        if (m.sensor[i].attempt_in_flight) {
+            sensor_mgr_on_subscribed(&m, i, 60, now);
+        }
+    }
+    int subscribed = 0;
+    for (int round = 0; round < 200 && subscribed < SLOT_COUNT; round++) {
+        now += 1000;
+        for (int s; (s = sensor_mgr_next_subscribe(&m, now)) >= 0;) {
+            sensor_mgr_on_subscribed(&m, s, 60, now);
+        }
+        subscribed = 0;
+        for (int i = 0; i < SLOT_COUNT; i++) {
+            subscribed += m.sensor[i].subscribed;
+        }
+    }
+    CHECK(subscribed == SLOT_COUNT);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -514,11 +641,29 @@ static void test_command(void)
     CHECK(!parse("pair", &c, err) && strstr(err, "usage"));
     CHECK(!parse("pair 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5", &c, err) && strstr(err, "11 digits"));
 
+    CHECK(parse("pair 3497 011 2332", &c, err) && c.slot == -1);
+    CHECK(parse("pair 3497-011-2332 slot 14", &c, err) && c.kind == CMD_PAIR && c.slot == 13 &&
+          c.code.passcode == 20202021);
+    CHECK(parse("pair 3497 011 2332 slot 64", &c, err) && c.slot == 63 && c.code.passcode == 20202021);
+    CHECK(!parse("pair 3497-011-2332 slot 0", &c, err) && strstr(err, "1-64"));
+    CHECK(!parse("pair 3497-011-2332 slot 65", &c, err));
+    CHECK(!parse("pair 3497-011-2332 slot 07", &c, err));
+    CHECK(!parse("pair 3497-011-2332 slot", &c, err) && strstr(err, "which slot"));
+    CHECK(!parse("pair slot 5", &c, err) && strstr(err, "usage"));
+    CHECK(!parse("pair 3497-011-2332 5", &c, err)); // a bare number is read as part of the code
+
+    CHECK(parse("move 2 10", &c, err) && c.kind == CMD_MOVE && c.slot == 1 && c.slot2 == 9);
+    CHECK(parse("move 64 1", &c, err) && c.slot == 63 && c.slot2 == 0);
+    CHECK(!parse("move 3 3", &c, err) && strstr(err, "same"));
+    CHECK(!parse("move 3", &c, err) && strstr(err, "usage"));
+    CHECK(!parse("move 3 65", &c, err));
+
     CHECK(parse("remove 1", &c, err) && c.kind == CMD_REMOVE && c.slot == 0);
     CHECK(parse("identify 8", &c, err) && c.kind == CMD_IDENTIFY && c.slot == 7);
-    CHECK(!parse("remove 0", &c, err) && strstr(err, "1-8"));
-    CHECK(!parse("remove 9", &c, err));
-    CHECK(!parse("remove 10", &c, err));
+    CHECK(parse("remove 64", &c, err) && c.slot == 63);
+    CHECK(!parse("remove 0", &c, err) && strstr(err, "1-64"));
+    CHECK(!parse("remove 65", &c, err));
+    CHECK(!parse("remove 010", &c, err));
     CHECK(!parse("remove x", &c, err));
     CHECK(!parse("remove", &c, err));
     CHECK(!parse("remove 1 2", &c, err));
@@ -568,6 +713,7 @@ int main(void)
     test_sensor_watchdogs(1000);
     test_sensor_watchdogs(UINT32_MAX - 90000);
     test_sensor_pairing();
+    test_sensor_slots_and_cap();
     test_command();
     test_thread_channel();
     printf("app_core: %d checks, %d failed\n", s_checks, s_failures);

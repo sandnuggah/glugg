@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 #include <memory>
+#include <utility>
 
 #include <app-common/zap-generated/ids/Attributes.h>
 #include <app-common/zap-generated/ids/Clusters.h>
@@ -51,9 +52,8 @@ static Controller::DeviceCommissioner *commissioner()
 
 class Subscription final : public ReadClient::Callback {
 public:
-    Subscription(int slot, NodeId node)
-        : m_slot(slot)
-        , m_node(node)
+    explicit Subscription(NodeId node)
+        : m_node(node)
         , m_on_connected(on_connected, this)
         , m_on_connection_failure(on_connection_failure, this)
     {
@@ -95,11 +95,8 @@ private:
         static_cast<Subscription *>(context)->report_down(error);
     }
 
-    // True while this object's node still owns its slot; late callbacks after a remove are dropped.
-    bool current(const sensor_mgr_t *m) const
-    {
-        return m->table.slot[m_slot].used && m->table.slot[m_slot].node_id == m_node;
-    }
+    // The slot this sensor is on now (`move` can change it), or -1 once it was removed; late callbacks are dropped.
+    int slot(const sensor_mgr_t *m) const { return slot_table_find_node(&m->table, m_node); }
 
     void OnAttributeData(const ConcreteDataAttributePath &path, TLV::TLVReader *data, const StatusIB &status) override
     {
@@ -110,13 +107,19 @@ private:
         }
         bool closed = false;
         if (DataModel::Decode(*data, closed) != CHIP_NO_ERROR) {
-            ESP_LOGW(TAG, "Slot %d: undecodable StateValue", m_slot + 1);
+            ESP_LOGW(TAG, "Node 0x%" PRIx64 ": undecodable StateValue", m_node);
             return;
         }
-        ESP_LOGI(TAG, "Slot %d: %s", m_slot + 1, closed ? "closed" : "OPEN");
-        AppStateLock m;
-        if (current(m.get())) {
-            sensor_mgr_on_state_value(m.get(), m_slot, closed, app_now_ms());
+        int s;
+        {
+            AppStateLock m;
+            s = slot(m.get());
+            if (s >= 0) {
+                sensor_mgr_on_state_value(m.get(), s, closed, app_now_ms());
+            }
+        }
+        if (s >= 0) {
+            ESP_LOGI(TAG, "Slot %d: %s", s + 1, closed ? "closed" : "OPEN");
         }
     }
 
@@ -125,8 +128,9 @@ private:
     void NotifySubscriptionStillActive(const ReadClient &) override
     {
         AppStateLock m;
-        if (current(m.get())) {
-            sensor_mgr_on_heard(m.get(), m_slot, app_now_ms());
+        int s = slot(m.get());
+        if (s >= 0) {
+            sensor_mgr_on_heard(m.get(), s, app_now_ms());
         }
     }
 
@@ -136,10 +140,16 @@ private:
         if (m_client->GetReportingIntervals(min_s, max_s) != CHIP_NO_ERROR) {
             max_s = kMaxIntervalCeilingS; // can't happen for an active subscription; assume our ceiling
         }
-        ESP_LOGI(TAG, "Slot %d: subscribed (0x%" PRIx32 ", max interval %u s)", m_slot + 1, id, max_s);
-        AppStateLock m;
-        if (current(m.get())) {
-            sensor_mgr_on_subscribed(m.get(), m_slot, max_s, app_now_ms());
+        int s;
+        {
+            AppStateLock m;
+            s = slot(m.get());
+            if (s >= 0) {
+                sensor_mgr_on_subscribed(m.get(), s, max_s, app_now_ms());
+            }
+        }
+        if (s >= 0) {
+            ESP_LOGI(TAG, "Slot %d: subscribed (0x%" PRIx32 ", max interval %u s)", s + 1, id, max_s);
         }
     }
 
@@ -153,14 +163,19 @@ private:
 
     void report_down(CHIP_ERROR error)
     {
-        ESP_LOGW(TAG, "Slot %d: subscription down: %" CHIP_ERROR_FORMAT, m_slot + 1, error.Format());
-        AppStateLock m;
-        if (current(m.get())) {
-            sensor_mgr_on_subscription_down(m.get(), m_slot, app_now_ms(), esp_random());
+        int s;
+        {
+            AppStateLock m;
+            s = slot(m.get());
+            if (s >= 0) {
+                sensor_mgr_on_subscription_down(m.get(), s, app_now_ms(), esp_random());
+            }
+        }
+        if (s >= 0) {
+            ESP_LOGW(TAG, "Slot %d: subscription down: %" CHIP_ERROR_FORMAT, s + 1, error.Format());
         }
     }
 
-    const int m_slot;
     const NodeId m_node;
     AttributePathParams m_path;
     CHIP_ERROR m_last_error = CHIP_ERROR_INTERNAL;
@@ -201,7 +216,7 @@ static void tick(System::Layer *, void *)
     // Outside the lock: starting a subscription may call back synchronously.
     for (int i = 0; i < n; i++) {
         ESP_LOGI(TAG, "Slot %d: subscribing to node 0x%" PRIx64, slots[i] + 1, nodes[i]);
-        s_subs[slots[i]] = std::make_unique<Subscription>(slots[i], nodes[i]);
+        s_subs[slots[i]] = std::make_unique<Subscription>(nodes[i]);
         s_subs[slots[i]]->start();
     }
     if (s_wdt) {
@@ -340,14 +355,14 @@ static void clean_up_failed_commissioning(NodeId node, CommissioningStage stage)
     LogErrorOnFailure(DeviceLayer::PlatformMgr().ScheduleWork(clean_up_failed_commissioning_later));
 }
 
-esp_err_t sensor_link_pair(const pairing_code_t *code)
+esp_err_t sensor_link_pair(const pairing_code_t *code, int requested_slot)
 {
     int slot;
     uint64_t node;
     sensor_mgr_err_t err;
     {
         AppStateLock m;
-        err = sensor_mgr_begin_pairing(m.get(), &slot, &node);
+        err = sensor_mgr_begin_pairing(m.get(), requested_slot, &slot, &node);
         if (err == SENSOR_MGR_OK) {
             app_state_save(m.get()); // the node ID is used up even if pairing fails
         }
@@ -363,6 +378,15 @@ esp_err_t sensor_link_pair(const pairing_code_t *code)
     if (err == SENSOR_MGR_FULL) {
         printf("All %d slots are used; remove a sensor first.\n", SLOT_COUNT);
         return ESP_ERR_NO_MEM;
+    }
+    if (err == SENSOR_MGR_SLOT_USED) {
+        printf("Slot %d already has a sensor; remove it first, or pair into a free slot and use move.\n",
+               requested_slot + 1);
+        return ESP_ERR_INVALID_STATE;
+    }
+    if (err != SENSOR_MGR_OK) {
+        printf("There is no slot %d.\n", requested_slot + 1);
+        return ESP_ERR_INVALID_ARG;
     }
 
     s_pairing_active = true;
@@ -459,6 +483,39 @@ esp_err_t sensor_link_remove(int slot)
     printf("Slot %d is free. Asking node 0x%" PRIx64 " to leave our fabric; see the log for its answer.\n", slot + 1,
            node);
     request_unpair(node);
+    return ESP_OK;
+}
+
+esp_err_t sensor_link_move(int from, int to)
+{
+    sensor_mgr_err_t err;
+    bool swapped = false;
+    {
+        AppStateLock m;
+        swapped = m->table.slot[to].used;
+        err = sensor_mgr_move(m.get(), from, to);
+        if (err == SENSOR_MGR_OK) {
+            app_state_save(m.get());
+        }
+    }
+    if (err == SENSOR_MGR_NOT_PAIRED) {
+        printf("Slot %d is empty.\n", from + 1);
+        return ESP_ERR_NOT_FOUND;
+    }
+    if (err == SENSOR_MGR_BUSY) {
+        printf("Slot %d or %d is being paired; try again when pairing has finished.\n", from + 1, to + 1);
+        return ESP_ERR_INVALID_STATE;
+    }
+    if (err != SENSOR_MGR_OK) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    // Subscriptions find their slot by node ID, so this only keeps the tick replacing the right one.
+    std::swap(s_subs[from], s_subs[to]);
+    if (swapped) {
+        printf("Slots %d and %d swapped sensors.\n", from + 1, to + 1);
+    } else {
+        printf("The sensor in slot %d is now in slot %d.\n", from + 1, to + 1);
+    }
     return ESP_OK;
 }
 

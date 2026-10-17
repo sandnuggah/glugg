@@ -11,14 +11,15 @@
 extern "C" {
 #endif
 
-#define SLOT_COUNT 8
+// One slot per LED of the 8 x 8 panel.
+#define SLOT_COUNT 64
 
 // Node IDs are never reused, so a removed sensor's stale sessions can't be mistaken for a new one.
 #define SLOT_FIRST_NODE_ID 0x100
 // Matter's largest operational node ID (kMaxOperationalNodeId).
 #define SLOT_MAX_NODE_ID   0xFFFFFFEFFFFFFFFFull
 // Where the counter restarts if the saved table and the saved counter are both lost. Sensors paired before may still
-// be on the fabric with low IDs; this is far above any ID 8 slots would reach in practice.
+// be on the fabric with low IDs; this is far above any ID 64 slots would reach in practice.
 #define SLOT_RECOVERY_NODE_ID 0x10000
 
 #define SLOT_TABLE_BLOB_SIZE (4 + 8 + SLOT_COUNT * 9)
@@ -46,12 +47,15 @@ uint64_t slot_table_take_node_id(slot_table_t *t);
 
 void slot_table_assign(slot_table_t *t, int slot, uint64_t node_id);
 void slot_table_clear(slot_table_t *t, int slot);
+// Swaps two slots' owners; either may be empty.
+void slot_table_move(slot_table_t *t, int from, int to);
 
 // Fixed-size little-endian encoding for NVS. Returns bytes written (SLOT_TABLE_BLOB_SIZE) or 0 if buf is too small.
 size_t slot_table_encode(const slot_table_t *t, uint8_t *buf, size_t len);
 
 // Returns false (and leaves *t untouched) for a blob with the wrong size, magic, version or inconsistent contents,
-// including a next node ID outside SLOT_FIRST_NODE_ID..SLOT_MAX_NODE_ID.
+// including a next node ID outside SLOT_FIRST_NODE_ID..SLOT_MAX_NODE_ID. A blob saved with fewer slots (8, before
+// the panel) still loads; the slots it doesn't have are empty.
 bool slot_table_decode(slot_table_t *t, const uint8_t *buf, size_t len);
 
 // True if `id` can be the next node ID handed out.
