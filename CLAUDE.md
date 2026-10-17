@@ -51,6 +51,7 @@ Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the control
 - After joining, and after the S3 reboots, it registers with the S3's SRP server a little after Matter's first lookup (within 15 s of joining Thread). Each Matter lookup asks once and then waits its full timeout, `CHIP_CONFIG_ADDRESS_RESOLVE_MAX_LOOKUP_TIME_MS`. That is 15 s in `firmware/controller/main/matter_project_config.h`, down from the 45 s default. Pairing makes 3 lookup attempts, so don't go much lower.
   - Measured 2026-10-07 with 15 s: `pair` → paired 30 s (was 60 s), → subscribed 46 s. Network up → subscribed after a reboot 42 s (was ~59 s).
   - The rest is the sensor's sleep: each first message waits up to ~15 s for its next check-in.
+- `identify` (Matter Identify command) is accepted but has no visible effect on MYGGBETT (tested 2026-10-17). The command stays for other sensor models.
 - Endpoint 1 is a Contact Sensor with the **BooleanState** cluster (`0x0045`). Subscribe to attribute `StateValue` (`0x0000`). **true = closed, false = open.** It sends no StateChange event.
 - Attestation needs IKEA's PAA certificate bundled in the trust store, because the device is offline. It's bundled as `firmware/controller/paa_cert/ikea_g1.der` (`CN=IKEA of Sweden Matter PAA G1`, vid 0x117C) along with every other production PAA on the DCL. See `paa_cert.md`.
 
@@ -83,7 +84,8 @@ Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the control
 2. **Pair one MYGGBETT** (needs the S3).
    - **Passed 2026-10-06** (bench): one MYGGBETT paired over BLE with the patched SDK, reports open/closed live, and is restored after a reboot without re-pairing. A first attempt found no sensor because its 15-minute pairing window had closed; a factory reset (hold the button ~10 s) reopened it.
 3. **The app:** slot manager (NVS), subscription manager, LED renderer, console commands (`pair`, `list`, `remove`, `identify`, `factory-reset confirm`).
-   - **Written, not yet run on hardware.** Host logic is in `firmware/components/app_core` + `led_pattern` (tests: `make -C firmware/components/app_core/test` and `make -C firmware/components/led_pattern/test`). The Matter glue is in `firmware/controller/main` (see its README). It builds for the S3.
+   - **Verified on the protoboard (2026-10-17), on the 8×8 panel:** startup ring, then a dark panel; `pair`, with open/closed on LED 1 (amber/off); `list`; recovery after a reboot without re-pairing; `remove`; `factory-reset confirm`. `identify` is accepted, but MYGGBETT shows nothing visible (see MYGGBETT facts). Still to test: the blue "not heard from" blink (battery out, ~33 min). At the time the 74HCT32 was out of its socket (it had been damaged; debugged in a separate session), so the panel ran on 3.3 V data.
+   - Host logic is in `firmware/components/app_core` + `led_pattern` (tests: `make -C firmware/components/app_core/test` and `make -C firmware/components/led_pattern/test`). The Matter glue is in `firmware/controller/main` (see its README). It builds for the S3.
 4. **Multiple sensors + 48 h soak test.**
    - **Not started.**
 5. **Enclosure + README.**
