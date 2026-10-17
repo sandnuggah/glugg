@@ -3,7 +3,7 @@
 Glugg (Swedish for a small opening in a wall) watches the windows of the user's wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT door/window sensors (Matter over Thread) and lights one LED per open window on an 8×8 WS2812 panel (changed 2026-10-17 from an 8-LED stick whose pads broke off). Sensor n owns LED n, the first row along the data chain, in the order sensors were paired; the other 56 LEDs are only used by the startup ring and the red radio-failure state.
 
 - Full plan, wiring diagram, risks and sources: https://claude.ai/artifact/5PzD6ZSrUVS8m9g1BBY7jM (read it with the Artifact tool, `action: "read"`)
-  - Local snapshot: `docs/plan.html` (rev 20, 2026-10-17, the version published from it). It doesn't update itself; the artifact is the live version. It includes the publish skeleton; strip everything up to `<body>` and the closing `</body></html>` before republishing from it.
+  - Local snapshot: `docs/plan.html` (rev 21, 2026-10-17, the version published from it). It doesn't update itself; the artifact is the live version. It includes the publish skeleton; strip everything up to `<body>` and the closing `</body></html>` before republishing from it.
 - Parts list: `bom.csv` (Electrokit article numbers, `sku; qty`) has every Electrokit part of the protoboard build as of 2026-10-17: both Zero boards (header versions 41036436 / 41032832), 74HCT32 40381032, 18-pin DIL socket, 1N5817, 330 Ω / 10 kΩ / 1 kΩ, 1000 µF, 100 nF, 3-pole 2.54 mm screw terminal 41002454, 40×60 mm protoboard 41010656.
   - Not in it: the 8×8 WS2812 panel (bought elsewhere), a USB-C charger and cable (see Power), solid-core hook-up wire, and an enclosure. The MYGGBETT sensors come from IKEA.
   - History: the 2026-09-30 order had the no-header boards and a 74HCT125N; the first S3 failed during the first protoboard attempt; the 2026-10-16 order brought the header boards, the 74HCT32 (the 74HCT125N was out of stock) and the protoboard parts. The 8-LED NeoPixel Stick's pads broke off (2026-10-17), so an 8×8 panel replaced it. The Mean Well supply was dropped on 2026-10-07 in favour of USB-C power.
@@ -101,6 +101,11 @@ Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the control
 - The idea: a Bluetooth console on the S3 (Nordic UART service layout, added through the ESP32 BLE manager's `ConfigureExtraServices`, with its own advertising and GAP handler) next to the USB console, opened for a few minutes by pressing the S3's BOOT button.
 - The phone side, in steps: a generic app (Bluefruit Connect / nRF Toolbox UART) first, then perhaps a SwiftUI app that scans the sensor's `MT:` QR code. Glugg would accept `pair MT:…`.
 - Safari has no Web Bluetooth. Apple Home is out (offline). Main risk: the S3 being peripheral to the phone and central to the sensor at the same time.
+
+**To explore: a custom PCB (added 2026-10-17; nothing decided).** After the Phase 4 soak and before building the Phase 6 room units.
+- The idea: a carrier PCB for the S3-Zero + H2-Zero with the 74HCT32, diode, resistors, capacitors, an LED panel connector and mounting holes, ordered in a small batch, so every room unit is identical and no protoboard wiring is needed.
+- Decided 2026-10-17: design it in **KiCad** (schematic + board as the source, checked with KiCad's ERC/DRC, Gerbers and drill files exported from it), not hand-generated Gerbers. Install KiCad 9 on the VM (`sudo apt install kicad`) when the work starts; Freerouting (Java) if autorouting is needed. The Zero-board footprints are custom (2 × 9, 15.24 mm rows); check them against the real boards with a 1:1 print before ordering.
+- Still to settle: through-hole vs factory-assembled SMD, keep the Zero boards vs put the modules on the board, cost and lead time.
 
 Keep app logic (slots, LED state mapping, backoff, command parsing) free of Matter and ESP dependencies behind small interfaces, so it can be unit-tested on the host.
 

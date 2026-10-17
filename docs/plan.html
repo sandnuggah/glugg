@@ -149,7 +149,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
 <div class="wrap">
 
 <header class="top">
-  <span class="eyebrow">Project plan · 17 Oct 2026 · rev 20</span>
+  <span class="eyebrow">Project plan · 17 Oct 2026 · rev 21</span>
   <h1>Glugg</h1>
   <p class="lede">Glugg, Swedish for a small opening in a wall, keeps watch over the windows of your wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT window sensors and lights one LED per open window on an 8×8 LED panel. Your ESP32-H2 is its Thread radio. Sensor 1 gets LED 1, sensor 2 gets LED 2, in the order they are added. The workshop has four rooms with about 30 windows each, so the finished system is one Glugg per room, each showing its own windows.</p>
   <div class="parts">
@@ -781,10 +781,11 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
   </div>
   <div class="col">
     <h3>Parked for later</h3>
-    <p class="muted">Explored but not decided. Revisit once the first MYGGBETT pairs (Phase 2), and before the room units (Phase 6).</p>
+    <p class="muted">Explored or to explore, nothing decided. Revisit before the room units (Phase 6).</p>
   </div>
   <div class="decisions">
     <div class="decision"><h3>Parked · Pairing from your iPhone</h3><p>For convenience: scan a sensor's QR code instead of typing its code on a computer. The S3 would get a Bluetooth console with the same commands as the USB one, kept alongside it, and open only for a few minutes after you press its BOOT button. On the phone, start with a ready-made Bluetooth terminal app (Bluefruit Connect or nRF Toolbox), and perhaps later a small app of your own that scans the QR code and, for the room units, lets you pick the window. Glugg stays offline: no Wi-Fi and no Apple Home, and Safari can't do Bluetooth from a web page. The main risk is the S3 talking to your phone and to the sensor over Bluetooth at the same time.</p></div>
+    <div class="decision"><h3>To explore · A printed circuit board</h3><p>Instead of hand-wiring a protoboard for every room unit, design a small PCB once and order a batch. It would remove the solder bridges and wiring mistakes that cost a 74HCT32 on the first build, make every unit identical, and make the four (or more) room units quick to assemble. Simplest version: a carrier board that the S3-Zero and H2-Zero solder or plug onto, with the 74HCT32, diode, resistors, capacitors and a screw terminal or connector for the LED panel, plus mounting holes for the enclosure. Decided on 17 Oct: it is designed in KiCad, so the board is checked by KiCad's electrical and design-rule checks and the files for the PCB maker come out of it. Things to settle: through-hole or factory-assembled surface-mount parts, whether to keep the two Zero boards or put the modules on the board directly, and the cost and lead time of a small batch from a PCB maker. Nothing decided; explore after the 48-hour test (Phase 4) and before building the room units (Phase 6).</p></div>
   </div>
 </section>
 
