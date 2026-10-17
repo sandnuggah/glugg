@@ -149,21 +149,22 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
 <div class="wrap">
 
 <header class="top">
-  <span class="eyebrow">Project plan · 17 Oct 2026 · rev 19</span>
+  <span class="eyebrow">Project plan · 17 Oct 2026 · rev 20</span>
   <h1>Glugg</h1>
-  <p class="lede">Glugg, Swedish for a small opening in a wall, keeps watch over the windows of your wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT window sensors and lights one LED per open window on an 8-LED strip. Your ESP32-H2 is its Thread radio. Sensor 1 gets LED 1, sensor 2 gets LED 2, in the order they are added. The workshop has four rooms with about 30 windows each, so the finished system is one Glugg per room, each showing its own windows.</p>
+  <p class="lede">Glugg, Swedish for a small opening in a wall, keeps watch over the windows of your wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT window sensors and lights one LED per open window on an 8×8 LED panel. Your ESP32-H2 is its Thread radio. Sensor 1 gets LED 1, sensor 2 gets LED 2, in the order they are added. The workshop has four rooms with about 30 windows each, so the finished system is one Glugg per room, each showing its own windows.</p>
   <div class="parts">
     <span class="chip">USB-C charger, into the S3</span>
-    <span class="chip">Waveshare ESP32-S3-Zero-N8R8 (new)</span>
+    <span class="chip">Waveshare ESP32-S3-Zero-N8R8</span>
     <span class="chip">Waveshare ESP32-H2-Zero</span>
-    <span class="chip">8× WS2812 stick (4–7 VDC)</span>
+    <span class="chip">8×8 WS2812 panel</span>
+    <span class="chip">74HCT32 on a 40×60 mm protoboard</span>
     <span class="chip">IKEA MYGGBETT E2492</span>
   </div>
 </header>
 
 <section class="verdict" aria-labelledby="v-h">
   <h2 id="v-h">Where this stands</h2>
-  <div class="row"><span>Progress</span><p>The toolchain is installed. The offline lookup, the plan's go/no-go question, <b>passed in simulation</b>. The full S3 firmware (pairing, subscriptions, LEDs and console) is written and builds, and its app logic passes its tests on the build machine. A review against the Matter, OpenThread and ESP-IDF sources then fixed several bugs that would have shown up on the first pairing, and added a startup animation. <b>First hardware results, 6 Oct:</b> on the bench, the LED test runs, the S3 leads its own offline Thread network, and the first MYGGBETT paired over Bluetooth, reports open and closed, and stays paired after a reboot. Power is now a USB-C charger plugged into the S3, instead of the Mean Well mains supply. <b>7 Oct:</b> Glugg now runs with no computer attached (it used to restart every 30 s), and pairing takes about 30 s instead of 60. Next: a second sensor, then the final wiring and the 48-hour test.</p></div>
+  <div class="row"><span>Progress</span><p>The toolchain is installed. The offline lookup, the plan's go/no-go question, <b>passed in simulation</b>. The full S3 firmware (pairing, subscriptions, LEDs and console) is written and builds, and its app logic passes its tests on the build machine. A review against the Matter, OpenThread and ESP-IDF sources then fixed several bugs that would have shown up on the first pairing, and added a startup animation. <b>First hardware results, 6 Oct:</b> on the bench, the LED test runs, the S3 leads its own offline Thread network, and the first MYGGBETT paired over Bluetooth, reports open and closed, and stays paired after a reboot. Power is now a USB-C charger plugged into the S3, instead of the Mean Well mains supply. <b>7 Oct:</b> Glugg now runs with no computer attached (it used to restart every 30 s), and pairing takes about 30 s instead of 60. <b>16–17 Oct:</b> Glugg is soldered onto a 40×60 mm protoboard and runs on the charger. The broken 8-LED stick was replaced by an 8×8 panel, with a breathing ring as the startup animation. Every console command and LED state now works on the real hardware, and two MYGGBETT run side by side. Memory measurements show 64 sensors per unit fit easily. Next: the 48-hour test, and a new 74HCT32 for the one damaged during the build.</p></div>
   <div class="row"><span>Design</span><p>The <b>ESP32-S3-Zero-N8R8</b> (8 MB flash, 8 MB PSRAM) runs the Matter controller: it pairs the sensors, keeps track of them and drives the LEDs. The <b>ESP32-H2-Zero</b> is reflashed as its Thread radio, and the two boards talk over two UART wires. Espressif tests exactly this pairing: an S3 with PSRAM running the controller plus a Thread border router, with an H2 as the radio.</p></div>
   <div class="row"><span>Sensor</span><p>MYGGBETT uses Matter over Thread only; nobody has found a way to pair it over Zigbee. It pairs over Bluetooth, so the S3 handles that, and after pairing it talks over Thread through the H2.</p></div>
   <div class="row"><span>Network</span><p>Fully offline, by your choice: no Wi-Fi and no network credentials on the device. The S3 therefore runs the Thread network's lookup service (SRP and DNS-SD) itself. Espressif's example doesn't do this, but it works: first in an OpenThread simulation, then on the real S3 on 6 Oct. Matter points its lookups at the S3's own service without extra code.</p></div>
@@ -176,12 +177,13 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
   <div class="col">
     <span class="eyebrow">1 · Wiring</span>
     <h2 id="w-h">Wiring diagram</h2>
-    <p>A USB-C charger plugs straight into the S3. The S3-Zero ties its 5V pin to its USB port, so that pin is the 5 V rail: it powers the LED stick and the buffer, and the H2 through a Schottky diode. The H2 is powered whenever the S3 is, and the diode keeps the two boards' USB ports apart. The same USB-C port is the console, so to pair a sensor you swap the charger for your computer. The S3's 3.3 V data line goes through a 5 V buffer to reach the LEDs. The H2 connects to the S3 with two crossed UART wires: each board's TX goes to the other board's RX, and the S3's TX wire has a 1 kΩ resistor at the S3 end.</p>
+    <p>A USB-C charger plugs straight into the S3. The S3-Zero ties its 5V pin to its USB port, so that pin is the 5 V rail: it powers the LED panel and the buffer, and the H2 through a Schottky diode. The H2 is powered whenever the S3 is, and the diode keeps the two boards' USB ports apart. The same USB-C port is the console, so to pair a sensor you swap the charger for your computer. The S3's 3.3 V data line goes through a 5 V buffer to reach the LEDs. The H2 connects to the S3 with two crossed UART wires: each board's TX goes to the other board's RX, and the S3's TX wire has a 1 kΩ resistor at the S3 end.</p>
+    <p class="callout note"><span><b>Built on 16 Oct</b> on a 40×60 mm protoboard, with both boards soldered straight in. The step-by-step <a href="https://claude.ai/artifact/TmpncgYGMUV4vgWFSSakSP">build guide</a> has the hole-by-hole layout, the underside wiring and the checks. The buffer is a 74HCT32 OR gate used as a buffer (gate 3: data into pins 9 and 10, out on pin 8), because the 74HCT125 was out of stock.</span></p>
   </div>
 
   <figure>
     <div class="diagram">
-      <svg viewBox="0 0 1320 780" role="img" aria-label="Wiring: a USB-C charger plugs into the ESP32-S3-Zero, whose 5V and GND pins form a 5 V rail and a ground rail. The 5 V rail feeds the 74HCT125 VCC and the LED stick, and the ESP32-H2-Zero 5V pin through a 1N5817 diode. H2 TX goes to S3 GPIO5, and S3 GPIO6 goes through a 1 kΩ resistor to H2 RX. S3 GPIO13 goes to 74HCT125 input 1A with a 10 kΩ pull-down; output 1Y goes through 330 Ω to the stick's DIN. A 1000 µF capacitor sits across the rails at the stick.">
+      <svg viewBox="0 0 1320 780" role="img" aria-label="Wiring: a USB-C charger plugs into the ESP32-S3-Zero, whose 5V and GND pins form a 5 V rail and a ground rail. The 5 V rail feeds the 74HCT32 VCC and the 8x8 LED panel, and the ESP32-H2-Zero 5V pin through a 1N5817 diode. H2 TX goes to S3 GPIO5, and S3 GPIO6 goes through a 1 kΩ resistor to H2 RX. S3 GPIO13 goes to 74HCT32 inputs 9 and 10 with a 10 kΩ pull-down; output 8 goes through 330 Ω to the panel's DIN. A 1000 µF capacitor sits across the rails at the panel.">
         <g font-size="12" fill="currentColor">
 
         <!-- ===== Rails ===== -->
@@ -308,23 +310,19 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
         <text x="872" y="500" font-size="10" fill="var(--muted)">pull-down</text>
         <circle cx="860" cy="740" r="4.5" fill="var(--wgnd)"/>
 
-        <!-- ===== 74HCT125 ===== -->
+        <!-- ===== 74HCT32 ===== -->
         <rect x="900" y="290" width="120" height="110" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
         <g font-size="11">
-          <text x="908" y="340">1A</text>
-          <text x="1014" y="340" text-anchor="end">1Y</text>
-          <text x="960" y="308" text-anchor="middle">VCC</text>
-          <text x="935" y="392" text-anchor="middle">GND</text>
-          <text x="985" y="392" text-anchor="middle">1OE</text>
-          <line x1="975" y1="380" x2="995" y2="380" stroke="currentColor"/>
+          <text x="908" y="340">9+10</text>
+          <text x="1014" y="340" text-anchor="end">8</text>
+          <text x="960" y="308" text-anchor="middle">14 VCC</text>
+          <text x="935" y="392" text-anchor="middle">7 GND</text>
         </g>
-        <text x="960" y="360" text-anchor="middle" font-family="var(--f-display)" font-size="14" font-weight="600">74HCT125</text>
-        <text x="960" y="375" text-anchor="middle" font-size="10" fill="var(--muted)">gate 1, 5 V</text>
+        <text x="960" y="360" text-anchor="middle" font-family="var(--f-display)" font-size="14" font-weight="600">74HCT32</text>
+        <text x="960" y="375" text-anchor="middle" font-size="10" fill="var(--muted)">OR gate 3 as buffer, 5 V</text>
         <line x1="960" y1="200" x2="960" y2="290" stroke="var(--w5v)" stroke-width="2.5"/>
         <circle cx="960" cy="200" r="4.5" fill="var(--w5v)"/>
         <line x1="935" y1="400" x2="935" y2="740" stroke="var(--wgnd)" stroke-width="2.5"/>
-        <polyline points="985,400 985,422 935,422" fill="none" stroke="var(--wgnd)" stroke-width="2"/>
-        <circle cx="935" cy="422" r="4" fill="var(--wgnd)"/>
         <circle cx="935" cy="740" r="4.5" fill="var(--wgnd)"/>
 
         <!-- ===== 1Y → 330Ω → DIN ===== -->
@@ -334,15 +332,15 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
         <text x="1055" y="322" text-anchor="middle" font-size="11">330 Ω</text>
         <text x="1055" y="360" text-anchor="middle" font-size="10" fill="var(--wdata)" font-weight="600">5 V data</text>
 
-        <!-- ===== LED stick ===== -->
+        <!-- ===== LED panel ===== -->
         <polyline points="1095,200 1095,280 1110,280" fill="none" stroke="var(--w5v)" stroke-width="3"/>
         <circle cx="1095" cy="200" r="4.5" fill="var(--w5v)"/>
         <polyline points="1095,740 1095,500 1110,500" fill="none" stroke="var(--wgnd)" stroke-width="3"/>
         <circle cx="1095" cy="740" r="4.5" fill="var(--wgnd)"/>
-        <text x="1155" y="238" text-anchor="middle" font-family="var(--f-display)" font-size="14" font-weight="600">8× WS2812</text>
+        <text x="1155" y="238" text-anchor="middle" font-family="var(--f-display)" font-size="14" font-weight="600">8×8 WS2812</text>
         <rect x="1110" y="250" width="90" height="290" rx="4" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
         <g font-size="10">
-          <text x="1116" y="284">4-7VDC</text>
+          <text x="1116" y="284">5V</text>
           <text x="1116" y="340" font-weight="600">DIN</text>
           <text x="1116" y="504">GND</text>
         </g>
@@ -359,7 +357,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
         <g font-size="9" text-anchor="middle" fill="currentColor">
           <text x="1180" y="283" fill="#1a1d1b">1</text><text x="1180" y="313">2</text><text x="1180" y="343">3</text><text x="1180" y="373">4</text><text x="1180" y="403">5</text><text x="1180" y="433">6</text><text x="1180" y="463">7</text><text x="1180" y="493">8</text>
         </g>
-        <text x="1155" y="558" text-anchor="middle" font-size="10" fill="var(--muted)">DOUT end unused</text>
+        <text x="1155" y="558" text-anchor="middle" font-size="10" fill="var(--muted)">first row: LEDs 1–8</text>
 
         <!-- ===== Bulk cap ===== -->
         <line x1="1240" y1="200" x2="1240" y2="462" stroke="var(--w5v)" stroke-width="2.5"/>
@@ -380,7 +378,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
       <span><i style="background:var(--wuart)"></i>UART (solid H2→S3, dashed S3→H2)</span>
       <span><i style="background:var(--wdata)"></i>LED data</span>
     </div>
-    <figcaption>Both boards are drawn from the top with the USB-C end up, so the pin positions match the real boards. The S3's GND wire hops over the H2's 5 V feed; the two wires are not connected. The 1 kΩ resistor in the S3 → H2 wire sits right at the S3's pin 6. LED 1, the pixel nearest DIN, is shown lit as an example of sensor 1 reporting open. Add a 100 nF ceramic capacitor between the 74HCT125's VCC (pin 14) and GND (pin 7), right at the chip.</figcaption>
+    <figcaption>Both boards are drawn from the top with the USB-C end up, so the pin positions match the real boards. The S3's GND wire hops over the H2's 5 V feed; the two wires are not connected. The 1 kΩ resistor in the S3 → H2 wire sits right at the S3's pin 6. Only the panel's first row is drawn: LED 1, the pixel nearest DIN, is shown lit as an example of sensor 1 reporting open. Add a 100 nF ceramic capacitor between the 74HCT32's VCC (pin 14) and GND, right at the chip.</figcaption>
   </figure>
 
   <div class="table-wrap">
@@ -394,70 +392,66 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
         <tr><td>GND rail</td><td>H2-Zero <b>GND</b> (left pin 2)</td><td class="w"><span class="sw" style="background:var(--wgnd)"></span>black</td><td>Both boards must share ground for the UART link to work</td></tr>
         <tr><td>H2-Zero <b>TX</b> (right pin 1, GPIO24)</td><td>S3-Zero <b>5</b> (left pin 8, GPIO5 = UART1 RX)</td><td class="w"><span class="sw" style="background:var(--wuart)"></span>UART</td><td>Thread radio link between the boards, at 460 800 baud (the default for both <code>ot_rcp</code> and the controller). The H2-Zero already has a 499 Ω resistor in series on its TX pin.</td></tr>
         <tr><td>S3-Zero <b>6</b> (left pin 9, GPIO6 = UART1 TX)</td><td>1 kΩ → H2-Zero <b>RX</b> (right pin 2, GPIO23)</td><td class="w"><span class="sw" style="background:var(--wuart)"></span>UART</td><td>Put the resistor at the S3 end. The H2 now gets its power from the S3, but while you wire or flash, the S3's TX could still drive an unpowered H2 through the H2's input protection; 1 kΩ limits that and is harmless at 460 800 baud. Espressif's example uses GPIO17/18, which are pads under the S3-Zero. Header pins 5 and 6 are easier to solder, and the firmware already uses them.</td></tr>
-        <tr><td>+5 V rail</td><td>74HCT125 pin 14 · VCC</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red</td><td>Plus 100 nF to GND at the chip</td></tr>
-        <tr><td>GND rail</td><td>74HCT125 pin 7 · GND, and pin 1 · 1OE</td><td class="w"><span class="sw" style="background:var(--wgnd)"></span>black</td><td>1OE low turns the buffer on permanently</td></tr>
-        <tr><td>S3-Zero <b>13</b> (right pin 3, GPIO13)</td><td>74HCT125 pin 2 · 1A</td><td class="w"><span class="sw" style="background:var(--wdata)"></span>data</td><td>GPIO13 has no boot, USB or UART role, so it won't glitch the LEDs at power-on. A 10 kΩ resistor to GND holds the line low while the chip boots.</td></tr>
-        <tr><td>74HCT125 pin 3 · 1Y</td><td>330 Ω → stick <b>DIN</b></td><td class="w"><span class="sw" style="background:var(--wdata)"></span>data</td><td>Put the resistor at the stick end and keep the wire short</td></tr>
-        <tr><td>74HCT125 pins 4, 5, 9, 10, 12, 13</td><td>GND</td><td class="w"><span class="sw" style="background:var(--wgnd)"></span>black</td><td>Unused gates: tie their inputs and OE pins low, and leave outputs 6, 8 and 11 unconnected</td></tr>
-        <tr><td>+5 V rail / GND rail</td><td>Stick <b>4-7VDC</b> / <b>GND</b></td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red / black</td><td>Worst case is 8 × 60 mA = 480 mA. The firmware also caps brightness.</td></tr>
-        <tr><td>1000 µF electrolytic</td><td>Across the stick's 4-7VDC (+) and GND</td><td class="w">—</td><td>Smooths current spikes when the LEDs switch</td></tr>
+        <tr><td>+5 V rail</td><td>74HCT32 pin 14 · VCC</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red</td><td>Plus 100 nF to GND at the chip</td></tr>
+        <tr><td>GND rail</td><td>74HCT32 pin 7 · GND</td><td class="w"><span class="sw" style="background:var(--wgnd)"></span>black</td><td></td></tr>
+        <tr><td>S3-Zero <b>13</b> (right pin 3, GPIO13)</td><td>74HCT32 pins 9 and 10 · gate 3 inputs</td><td class="w"><span class="sw" style="background:var(--wdata)"></span>data</td><td>GPIO13 has no boot, USB or UART role, so it won't glitch the LEDs at power-on. A 10 kΩ resistor to GND holds the line low while the chip boots. With both inputs tied together, the OR gate simply passes the data through at 5 V.</td></tr>
+        <tr><td>74HCT32 pin 8 · gate 3 output</td><td>330 Ω → screw terminal → panel <b>DIN</b></td><td class="w"><span class="sw" style="background:var(--wdata)"></span>data</td><td>Keep the wire to the panel short. Use the panel's DIN (input) pads, not DOUT.</td></tr>
+        <tr><td>74HCT32 pins 1, 2, 12, 13 / pins 4, 5</td><td>+5 V / GND</td><td class="w">red / black</td><td>Unused gates: tie their inputs to either rail (whichever is closer), and leave outputs 3, 6 and 11 unconnected</td></tr>
+        <tr><td>+5 V rail / GND rail</td><td>Panel <b>5V</b> / <b>GND</b>, through the screw terminal</td><td class="w"><span class="sw" style="background:var(--w5v)"></span>red / black</td><td>Glugg lights at most 8 LEDs at 25%, about 60 mA. The firmware caps brightness; never run code that sets all 64 to full white (3.8 A).</td></tr>
+        <tr><td>1000 µF electrolytic</td><td>Across the terminal's 5V (+) and GND</td><td class="w">—</td><td>Smooths current spikes when the LEDs switch</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="col" id="checklist">
     <h3>Wiring checklist</h3>
-    <p class="muted">The order to build it in, with the charger unplugged throughout. Pins are counted with the USB-C end up.</p>
-    <ol>
-      <li><b>Headers:</b> solder pin headers on both boards. Neither comes with them.</li>
-      <li><b>Buffer:</b> fit the 74HCT125 in its socket with the notch up (pin 1 top left). Pin 14 goes to the +5 V rail and pin 7 to GND, with the 100 nF capacitor between pins 14 and 7, right at the chip. Pin 1 (1OE) and the unused pins 4, 5, 9, 10, 12 and 13 go to GND. Leave pins 6, 8 and 11 unconnected.</li>
-      <li><b>Rails:</b> the S3's <b>5V</b> pin (left pin 1) becomes the +5 V rail, and its <b>GND</b> (left pin 2) the GND rail.</li>
-      <li><b>LED data:</b> S3 <b>GPIO13</b> (right pin 3) → 74HCT125 pin 2, with the 10 kΩ resistor from pin 2 to GND. Pin 3 → the 330 Ω resistor, placed at the stick end → the stick's <b>DIN</b>.</li>
-      <li><b>Stick power:</b> on the DIN-end pads, <b>4-7VDC</b> → +5 V rail and <b>GND</b> → GND rail. Put the 1000 µF capacitor across them with its striped (minus) leg on GND.</li>
-      <li><b>H2 power:</b> +5 V rail → 1N5817 → H2 <b>5V</b> (left pin 1), with the diode's band towards the H2. H2 <b>GND</b> (left pin 2) → GND rail.</li>
-      <li><b>Radio link:</b> H2 <b>TX</b> (GPIO24, right pin 1) → S3 <b>GPIO5</b> (left pin 8). S3 <b>GPIO6</b> (left pin 9) → the 1 kΩ resistor, placed at the S3 end → H2 <b>RX</b> (GPIO23, right pin 2).</li>
-      <li><b>Before power:</b> with a multimeter, check that the +5 V rail and GND aren't shorted. Check the diode's band and the capacitor's stripe once more.</li>
-      <li><b>Power up:</b> plug the charger into the S3. The stick sweeps white, then after about 25 s shows each sensor's state. To flash the H2 later, unplug the S3's power first.</li>
-    </ol>
+    <p>Follow the step-by-step <a href="https://claude.ai/artifact/TmpncgYGMUV4vgWFSSakSP">build guide</a>: it places every part hole by hole on the 40×60 mm protoboard, shows the underside wiring with each link and wire numbered, and ends with the multimeter checks and the first power-up. Lessons from the first build:</p>
+    <ul>
+      <li><b>Flash and test both Zero boards before soldering them in.</b> Once soldered they are hard to replace.</li>
+      <li><b>Measure every resistor in Ω mode before soldering.</b> The 1% parts have five colour bands that are easy to misread.</li>
+      <li><b>Check for solder bridges with a magnifier, above all between the chip's input and output pads.</b> A bridge between them made the 74HCT32 fight the S3's GPIO13 and damaged the chip.</li>
+      <li><b>Before power:</b> the +5 V and GND strips must not beep. With the chip out, GPIO13 (T11) to the terminal's DIN must read open.</li>
+      <li><b>Power up:</b> a dim white ring breathes on the panel for about 20 s, then each sensor's LED shows its state. To flash the H2 later, unplug the S3's power first.</li>
+    </ul>
   </div>
 
   <div class="col" id="bom">
     <h3>Parts list (Electrokit)</h3>
-    <p>Every electronic component needed to build this from scratch. The MYGGBETT sensors come from IKEA, and the mechanical parts are listed under “Not in the list”. Paste the list into <a href="https://www.electrokit.com/en/quickorder">Electrokit's quick order form</a>, or import <code>bom.csv</code> from the project folder. Prices are Electrokit's list prices excluding VAT on 30 Sep 2026, and every item was in stock that day. The first seven lines are the order placed on 30 Sep (108.32 SEK). The next two are parts you already had. The last line, the 1 kΩ UART resistor, was added after the order and is still to buy. Power comes from any USB-C charger plugged into the S3, which isn't in the list. Earlier revisions used a Mean Well mains supply, then a USB-C breakout feeding the rail. The order on 30 Sep included two 1N5817; the design now uses one. The 74AHCT125N was out of stock, so the list uses the 74HCT125N instead. It has the same pinout and also reads 3.3 V as high when powered from 5 V. Don't substitute a plain 74HC125, which needs about 3.5 V.</p>
+    <p>Every electronic component for the protoboard build as it stands on 17 Oct. Paste the list into <a href="https://www.electrokit.com/en/quickorder">Electrokit's quick order form</a>, or import <code>bom.csv</code> from the project folder; check prices there. The MYGGBETT sensors come from IKEA, and the 8×8 panel and the other parts under “Not in the list” come from elsewhere. History: the first order (30 Sep) had the no-header Zero boards and a 74HCT125N; after the first S3 failed during the protoboard build and the 74HCT125N was out of stock, a second order (16 Oct) brought the header versions of both boards, a 74HCT32 and the protoboard parts. The 8-LED stick's pads broke off, so an 8×8 panel replaced it. Don't substitute a plain 74HC32 (no T): from 5 V it doesn't reliably read 3.3 V as high.</p>
   </div>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Article no.</th><th>Part</th><th>Qty</th><th>For</th><th style="text-align:right">SEK ex VAT</th></tr></thead>
-      <tbody class="mono-nums">
-        <tr class="grp"><td colspan="5">Ordered 30 Sep 2026</td></tr>
-        <tr><td class="mono">41036435</td><td>ESP32-S3 dev board mini 8MB + PSRAM 8MB (Waveshare ESP32-S3-Zero-N8R8)</td><td>1</td><td>Matter controller</td><td style="text-align:right">95.20</td></tr>
-        <tr><td class="mono">40380125</td><td>74HCT125N DIP-14 quad bus buffer (TI CD74HCT125E)</td><td>1</td><td>3.3 V → 5 V LED data</td><td style="text-align:right">3.04</td></tr>
-        <tr><td class="mono">40315817</td><td>1N5817 Schottky diode, DO-41, 20 V 1 A</td><td>1</td><td>Between the S3's and the H2's 5V pins</td><td style="text-align:right">1.00</td></tr>
-        <tr><td class="mono">40811233</td><td>Resistor metal film 0.6 W 1% 330 Ω</td><td>1</td><td>In series with LED data</td><td style="text-align:right">0.80</td></tr>
-        <tr><td class="mono">40811410</td><td>Resistor metal film 0.6 W 1% 10 kΩ</td><td>1</td><td>Pull-down on GPIO13</td><td style="text-align:right">0.80</td></tr>
-        <tr><td class="mono">41017694</td><td>Electrolytic capacitor 1000 µF 16 V 105 °C, 10×16 mm</td><td>1</td><td>Across the LED stick's power</td><td style="text-align:right">3.60</td></tr>
-        <tr><td class="mono">41015538</td><td>Ceramic MLCC 100 nF 50 V X7R, 5 mm</td><td>1</td><td>Decoupling at the 74HCT125</td><td style="text-align:right">2.88</td></tr>
-        <tr class="grp"><td colspan="5">Already owned · Electrokit parts for a build from scratch</td></tr>
-        <tr><td class="mono">41032818</td><td>ESP32-H2 mini development board 4MB BLE/Zigbee/Thread (Waveshare ESP32-H2-Zero, no headers)</td><td>1</td><td>Thread radio</td><td style="text-align:right">63.20</td></tr>
-        <tr><td class="mono">41012479</td><td>NeoPixel stick 8 RGB LEDs 51mm (Adafruit 1426)</td><td>1</td><td>The 8 window LEDs</td><td style="text-align:right">71.20</td></tr>
-        <tr class="grp"><td colspan="5">Added after the order · still to buy</td></tr>
-        <tr><td class="mono">40811310</td><td>Resistor metal film 0.6 W 1% 1 kΩ</td><td>1</td><td>In series with S3 TX → H2 RX</td><td style="text-align:right">0.80</td></tr>
-        <tr><td></td><td><b>Total</b></td><td>10</td><td></td><td style="text-align:right"><b>242.52</b></td></tr>
+      <thead><tr><th>Article no.</th><th>Part</th><th>Qty</th><th>For</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">41036436</td><td>Waveshare ESP32-S3-Zero-N8R8, with headers</td><td>1</td><td>Matter controller</td></tr>
+        <tr><td class="mono">41032832</td><td>Waveshare ESP32-H2-Zero, with headers</td><td>1</td><td>Thread radio</td></tr>
+        <tr><td class="mono">40381032</td><td>74HCT32 DIP-14 quad OR gate (TI SN74HCT32N)</td><td>1</td><td>3.3 V → 5 V LED data, gate 3 as a buffer</td></tr>
+        <tr><td class="mono">40410018</td><td>DIL socket, 18-pin</td><td>1</td><td>Holds the 74HCT32 (chip at the notch end)</td></tr>
+        <tr><td class="mono">40315817</td><td>1N5817 Schottky diode, DO-41, 20 V 1 A</td><td>1</td><td>Between the S3's and the H2's 5V pins</td></tr>
+        <tr><td class="mono">40811233</td><td>Resistor metal film 0.6 W 1% 330 Ω</td><td>1</td><td>In series with LED data</td></tr>
+        <tr><td class="mono">40811410</td><td>Resistor metal film 0.6 W 1% 10 kΩ</td><td>1</td><td>Pull-down on GPIO13</td></tr>
+        <tr><td class="mono">40811310</td><td>Resistor metal film 0.6 W 1% 1 kΩ</td><td>1</td><td>In series with S3 TX → H2 RX</td></tr>
+        <tr><td class="mono">41017694</td><td>Electrolytic capacitor 1000 µF 16 V 105 °C, 10×16 mm</td><td>1</td><td>Across the panel's power</td></tr>
+        <tr><td class="mono">41015538</td><td>Ceramic MLCC 100 nF 50 V X7R, 5 mm</td><td>1</td><td>Decoupling at the 74HCT32</td></tr>
+        <tr><td class="mono">41002454</td><td>Screw terminal 2.54 mm, 3-pole</td><td>1</td><td>5V / DIN / GND to the panel</td></tr>
+        <tr><td class="mono">41010656</td><td>Prototype PCB 40×60 mm, 20 × 14 holes, two strips</td><td>1</td><td>Everything is built on it</td></tr>
       </tbody>
     </table>
   </div>
   <div class="csv">
     <div class="csv-head"><span class="eyebrow">bom.csv · sku; qty</span><button type="button" id="copy-bom">Copy</button></div>
-<pre id="bom-csv">41036435; 1
-40380125; 1
+<pre id="bom-csv">41036436; 1
+41032832; 1
+40381032; 1
+40410018; 1
 40315817; 1
 40811233; 1
 40811410; 1
+40811310; 1
 41017694; 1
 41015538; 1
-41032818; 1
-41012479; 1
-40811310; 1</pre>
+41002454; 1
+41010656; 1</pre>
   </div>
   <script>
     (function () {
@@ -478,14 +472,15 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
         <li>The MYGGBETT sensors, from IKEA</li>
         <li>A USB-C charger and cable</li>
         <li>An enclosure</li>
-        <li>Pin headers: both boards come without them</li>
-        <li>Hook-up wire, terminal blocks for the rails, and something to build on, such as perfboard, plus an optional DIP-14 socket for the 74HCT125</li>
+        <li>An 8×8 WS2812 LED panel (5V, DIN, GND), such as an Adafruit NeoPixel NeoMatrix or a generic WS2812B panel</li>
+        <li>Solid-core hook-up wire, about 0.5 mm</li>
       </ul>
     </div>
     <div class="fact">
       <h3>Alternatives</h3>
       <ul>
-        <li><b>Cheaper LEDs:</b> a generic 8-LED WS2812 stick (41016857, 31.20) is wired the same way (5 V, GND, data in). It isn't branded, and its pad labels may differ from the diagram.</li>
+        <li><b>LEDs:</b> any WS2812-type strip, stick or panel with 5V, DIN and GND works, up to 64 LEDs. Avoid APA102 or SK9822 panels (pads marked CI or CKI): they need a second, clock wire.</li>
+        <li><b>Buffer:</b> a 74HCT125 or 74AHCT125 also works, but the protoboard wiring then changes: its pin 10 is an enable pin and must go to GND, with the data on pin 9 only.</li>
         <li><b>Power:</b> any USB-C charger is enough. The whole build draws well under 0.5 A at 5 V.</li>
       </ul>
     </div>
@@ -496,7 +491,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
         <li>Connect GND first, then +5 V, then the signal wires. Disconnect in reverse order.</li>
         <li>Power and the console share the S3's USB-C port. Swap the charger for your computer to pair, and back afterwards; Glugg restarts each time and keeps its pairings.</li>
         <li>The S3 gets the charger's 5 V; the H2, behind its diode, about 4.7 V. Both are fine.</li>
-        <li>If the charger or a computer's USB port cuts out the moment you plug in, the 1000 µF capacitor's inrush is the likely cause. 100–220 µF is plenty for the stick at 25% brightness.</li>
+        <li>If the charger or a computer's USB port cuts out the moment you plug in, the 1000 µF capacitor's inrush is the likely cause. 100–220 µF is plenty at 25% brightness.</li>
       </ul>
     </div>
   </div>
@@ -511,7 +506,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
   </div>
   <figure>
     <div class="diagram">
-      <svg viewBox="0 0 1040 320" role="img" aria-label="MYGGBETT sensors pair with the ESP32-S3 over Bluetooth, then report over Thread through the ESP32-H2 radio, which talks to the S3 over UART. A computer sends pair, list and remove commands to the S3 over USB serial. Inside the S3: Matter controller, OpenThread leader with SRP and DNS-SD servers, slot table in NVS, and led_strip driver on GPIO13 feeding the LED stick.">
+      <svg viewBox="0 0 1040 320" role="img" aria-label="MYGGBETT sensors pair with the ESP32-S3 over Bluetooth, then report over Thread through the ESP32-H2 radio, which talks to the S3 over UART. A computer sends pair, list and remove commands to the S3 over USB serial. Inside the S3: Matter controller, OpenThread leader with SRP and DNS-SD servers, slot table in NVS, and led_strip driver on GPIO13 feeding the 8x8 LED panel.">
         <defs>
           <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
           <marker id="ahA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker>
@@ -564,14 +559,14 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
           <line x1="830" y1="256" x2="878" y2="256" stroke="var(--wdata)" stroke-width="2.5" marker-end="url(#ahD)"/>
           <text x="854" y="246" text-anchor="middle" font-size="10">GPIO13</text>
           <rect x="880" y="220" width="150" height="72" rx="6" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/>
-          <text x="955" y="248" text-anchor="middle" font-family="var(--f-display)" font-size="15" font-weight="600">LED stick</text>
+          <text x="955" y="248" text-anchor="middle" font-family="var(--f-display)" font-size="15" font-weight="600">8×8 panel, row 1</text>
           <g stroke="currentColor" stroke-width="1">
             <circle cx="896" cy="272" r="6" fill="var(--lit)" stroke="var(--lit)"/><circle cx="913" cy="272" r="6" fill="var(--surface)"/><circle cx="930" cy="272" r="6" fill="var(--lit)" stroke="var(--lit)"/><circle cx="947" cy="272" r="6" fill="var(--surface)"/><circle cx="964" cy="272" r="6" fill="var(--surface)"/><circle cx="981" cy="272" r="6" fill="var(--surface)"/><circle cx="998" cy="272" r="6" fill="var(--surface)"/><circle cx="1015" cy="272" r="6" fill="var(--surface)"/>
           </g>
         </g>
       </svg>
     </div>
-    <figcaption>The dashed Bluetooth link goes straight to the S3 and is only used while pairing. After that, everything goes over Thread through the H2. In the example on the stick, sensors 1 and 3 are open. There is no Wi-Fi: the whole system is offline.</figcaption>
+    <figcaption>The dashed Bluetooth link goes straight to the S3 and is only used while pairing. After that, everything goes over Thread through the H2. In the example on the panel's first row, sensors 1 and 3 are open. There is no Wi-Fi: the whole system is offline.</figcaption>
   </figure>
 
   <div class="col">
@@ -596,12 +591,12 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <div class="state"><span class="px off"></span><span><b>Closed or empty slot</b><br>Off</span></div>
     <div class="state"><span class="px pulse"></span><span><b>Pairing into this slot</b><br>Slow green pulse, one breath every 3 s, until pairing succeeds or fails</span></div>
     <div class="state"><span class="px stale"></span><span><b>Sensor not heard from</b><br>Dim blue blink, 0.3 s every 2 s, after 2 minutes without a working connection</span></div>
-    <div class="state"><span class="px sweep"></span><span><b>Starting up</b><br>A dim white dot sweeps across all 8 LEDs, 1.4 s there and back, until the Thread network and the lookup service are up, about 20–25 s after power-on.</span></div>
+    <div class="state"><span class="px sweep"></span><span><b>Starting up</b><br>A dim white ring breathes out from the panel's centre to its corners every 2.2 s, across all 64 LEDs, until the Thread network and the lookup service are up, about 20 s after power-on.</span></div>
     <div class="state"><span class="px wait"></span><span><b>Waiting for the first report</b><br>Steady dim white on a paired sensor that hasn't reported since boot or since pairing. After a power cut this lasts about 40 s, because each sensor has to re-register and then wake up for its next check-in. Blue after 2 minutes.</span></div>
-    <div class="state"><span class="px fail"></span><span><b>Thread radio not answering</b><br>All LEDs red for 3 s, then the S3 restarts. Check the UART wires and the H2's firmware.</span></div>
+    <div class="state"><span class="px fail"></span><span><b>Thread radio not answering</b><br>The whole panel red for 3 s, then the S3 restarts. Check the UART wires and the H2's firmware.</span></div>
   </div>
   <div class="col">
-    <p class="muted" style="font-size:0.92rem">Removing a sensor frees its slot, and the next sensor you pair takes the lowest free slot. The other sensors keep their LEDs. At most 8 sensors on the first unit, one per LED; room units will take about 30 (Phase 6). Slots are numbered 1–8 on the console, and LED 1 is the end nearest DIN. When a sleepy sensor's connection drops and comes back as part of normal operation, it gets a new 2-minute grace period, so routine reconnects don't flash blue.</p>
+    <p class="muted" style="font-size:0.92rem">Removing a sensor frees its slot, and the next sensor you pair takes the lowest free slot. The other sensors keep their LEDs. At most 8 sensors for now, on the panel's first row (LED 1 is the first LED after DIN); the other 56 LEDs stay off except for the startup ring and the red radio warning. Room units will take up to 64, one per LED (Phase 6). Slots are numbered 1–8 on the console. When a sleepy sensor's connection drops and comes back as part of normal operation, it gets a new 2-minute grace period, so routine reconnects don't flash blue.</p>
   </div>
 </section>
 
@@ -658,8 +653,8 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
   <div class="phases">
     <div class="phase"><span class="n">0</span><div class="body">
       <h3>Toolchain and hardware check</h3>
-      <p>Install ESP-IDF v5.5.5 and esp-matter v1.6. Confirm the S3's flash and PSRAM with <code>esptool.py flash_id</code>. Flash <code>ot_rcp</code> to the H2 over its USB, configured to talk over the TX/RX pins (UART0) at 460 800 baud, the default on both sides. Wire everything as above. Flash a small test program to the S3 that steps through all 8 LEDs on GPIO13 with a brightness cap.</p>
-      <p class="status"><span class="sev med">Mostly done</span><span>On 6 Oct the S3 checked out as an ESP32-S3-PICO-1 with 8 MB flash and 8 MB octal PSRAM, the LED test ran on the S3, and the H2 got its radio firmware, all on the bench with USB power. Still open: the checkpoint below on the final USB-C power wiring. Earlier: ESP-IDF v5.5.5 and esp-matter v1.6 are installed on the build machine. esp-matter's installer needed a one-line fix for Python 3.13. The parts arrived on 6 Oct. The LED test firmware is built for both boards. The H2's radio firmware is built too: ESP-IDF's <code>ot_rcp</code> from the same tree, on its TX/RX pins (GPIO24/23) at 460 800 baud. Order of work: solder the headers, check the S3's flash and PSRAM, run the LED test on the S3, flash the H2, wire the radio link, then flash the controller.</span></p>
+      <p>Install ESP-IDF v5.5.5 and esp-matter v1.6. Confirm the S3's flash and PSRAM with <code>esptool.py flash_id</code>. Flash <code>ot_rcp</code> to the H2 over its USB, configured to talk over the TX/RX pins (UART0) at 460 800 baud, the default on both sides. Wire everything as above. Flash a small test program to the S3 that steps through the LEDs on GPIO13 with a brightness cap.</p>
+      <p class="status"><span class="sev low">Done</span><span>On 16–17 Oct the protoboard build ran on the charger and from the Mac through the S3's USB-C port, with the 8×8 panel. On 6 Oct the S3 checked out as an ESP32-S3-PICO-1 with 8 MB flash and 8 MB octal PSRAM, the LED test ran on the S3, and the H2 got its radio firmware, all on the bench with USB power. Earlier: ESP-IDF v5.5.5 and esp-matter v1.6 are installed on the build machine. esp-matter's installer needed a one-line fix for Python 3.13. The parts arrived on 6 Oct. The LED test firmware is built for both boards. The H2's radio firmware is built too: ESP-IDF's <code>ot_rcp</code> from the same tree, on its TX/RX pins (GPIO24/23) at 460 800 baud. Order of work: solder the headers, check the S3's flash and PSRAM, run the LED test on the S3, flash the H2, wire the radio link, then flash the controller.</span></p>
       <p class="gate"><b>Checkpoint</b>All 8 LEDs show the right colours without flicker, both on the charger and with the Mac powering the unit through the S3's USB-C port. The S3 reports 8 MB of PSRAM.</p>
     </div></div>
     <div class="phase"><span class="n">1</span><div class="body">
@@ -677,17 +672,18 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
     <div class="phase"><span class="n">3</span><div class="body">
       <h3>The application</h3>
       <ul>
-        <li><b>Slot manager:</b> slot n ↔ node ID in flash, filling the lowest free slot, 8 slots maximum</li>
+        <li><b>Slot manager:</b> slot n ↔ node ID in flash, filling the lowest free slot, 8 slots for now</li>
         <li><b>Subscription manager:</b> subscribe to StateValue for each sensor, resubscribe after boot and after drops with backoff, and mark a sensor as not heard from</li>
         <li><b>LED renderer:</b> turns slot states into colours, with the brightness cap and the pairing animation</li>
         <li><b>Console commands:</b> <code>pair &lt;code&gt;</code>, <code>list</code>, <code>remove &lt;slot&gt;</code>, <code>identify &lt;slot&gt;</code>, <code>factory-reset confirm</code></li>
       </ul>
-      <p class="status"><span class="sev med">Written, not run</span><span>All four parts are written and build. The logic that doesn't need Matter (slots, backoff, LED states, pairing codes, console parsing, channel choice) passes about 35 000 test checks on the build machine. The review's fixes are in.</span></p>
+      <p class="status"><span class="sev low">Passed on hardware</span><span>On 17 Oct, on the protoboard with the 8×8 panel: the startup ring, <code>pair</code>, open and closed on LED 1, <code>list</code>, recovery after a reboot without re-pairing, <code>remove</code>, <code>factory-reset confirm</code>, and the blue “not heard from” blink with a sensor's battery out, back to normal when it returns. <code>identify</code> is accepted, but MYGGBETT has no light to show it. Before that: all four parts are written and build. The logic that doesn't need Matter (slots, backoff, LED states, pairing codes, console parsing, channel choice) passes about 35 000 test checks on the build machine. The review's fixes are in.</span></p>
       <p class="gate"><b>Checkpoint</b>With two sensors paired, each drives its own LED, and after a power cycle both LEDs are right again without re-pairing.</p>
     </div></div>
     <div class="phase"><span class="n">4</span><div class="body">
       <h3>Multiple sensors and a 48-hour test</h3>
-      <p>Pair 3 or more sensors and run the device for 48 hours. Test a battery swap, a power loss, removing and re-adding a sensor, and a sensor moved out of range.</p>
+      <p>Pair 3 or more sensors and run the device for 48 hours. Test a battery swap, a power loss, removing and re-adding a sensor, and a sensor moved out of range. Measure the memory each sensor uses, to size Phase 6.</p>
+      <p class="status"><span class="sev med">In progress</span><span>On 17 Oct two MYGGBETT ran side by side: each window drives only its own LED, and removing and re-pairing a sensor keeps its slot. Memory per sensor is about 0.5 KB internal RAM and 0.4–0.75 KB PSRAM, so 64 sensors fit easily. Still to do: the 48-hour test with a power cut and a battery swap, ideally with the new 74HCT32 fitted.</span></p>
       <p class="gate"><b>Checkpoint</b>No stuck LEDs. Every state change shows up within a few seconds, and dropped connections recover on their own.</p>
     </div></div>
     <div class="phase"><span class="n">5</span><div class="body">
@@ -770,7 +766,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
   <div class="decisions">
     <div class="decision"><h3>Decided · Fully offline</h3><p>No Wi-Fi. The S3 runs the Thread network and its lookup service on its own. Phase 1 proves this before anything else.</p></div>
     <div class="decision"><h3>Decided · Hardware</h3><p>ESP32-S3-Zero-N8R8 as the Matter controller, with the ESP32-H2-Zero as its Thread radio. The ESP32-C5-Zero was ruled out: no PSRAM, and an open bug that stops new devices joining Thread while Bluetooth is running.</p></div>
-    <div class="decision"><h3>Decided · LED colours and states</h3><p>Amber for open, off for closed, a green pulse while pairing, and a dim blue blink when a sensor hasn't been heard from. Added later: a white sweep while starting up, dim white until a sensor's first report, and red when the Thread radio doesn't answer.</p></div>
+    <div class="decision"><h3>Decided · LED colours and states</h3><p>Amber for open, off for closed, a green pulse while pairing, and a dim blue blink when a sensor hasn't been heard from. Added later: a white sweep while starting up (a breathing ring on the 8×8 panel since 17 Oct), dim white until a sensor's first report, and red when the Thread radio doesn't answer.</p></div>
     <div class="decision"><h3>Decided · One unit per room</h3><p>Four rooms with about 30 windows each get independent Gluggs, each showing its own windows with one LED per window. Since 17 Oct each unit is sized for up to 64 sensors, so a room can grow or one unit can cover two rooms. One central controller for all 120 sensors was ruled out: no one is known to run esp-matter's controller at that size, it would need a Thread router in every room, and one fault would blind every room.</p></div>
     <div class="decision"><h3>Decided · Pairing from the USB serial console</h3><p>Connect a computer to the S3 and type <code>pair &lt;11-digit code&gt;</code>. Pairing from an iPhone is parked (below).</p></div>
   </div>
@@ -830,10 +826,10 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
       <p class="src muted">Waveshare schematic · ESP32-H2 datasheet v1.3</p>
     </div>
     <div class="fact">
-      <h3>WS2812 stick</h3>
+      <h3>WS2812 panel</h3>
       <ul>
-        <li>Input pads: GND, DIN, 4-7VDC, GND. The DOUT end is for chaining.</li>
-        <li>60 mA per LED at full white, so 480 mA for all 8</li>
+        <li>Input pads: 5V, DIN, GND. DOUT is for chaining; feed the DIN side.</li>
+        <li>60 mA per LED at full white, so 3.8 A for all 64. Glugg lights at most 8 at 25% (64 at 25% amber in Phase 6 is about 0.45 A).</li>
         <li>The data line must reach at least 0.7 × supply voltage to count as high (3.5 V at 5 V), so the ESP32's 3.3 V is out of spec</li>
         <li>800 kHz, GRB order. Use a reset gap of at least 280 µs to cover all LED variants.</li>
       </ul>
@@ -864,6 +860,7 @@ tr.grp td { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06
       <li><a href="https://docs.waveshare.com/ESP32-C5-Zero">Waveshare ESP32-C5-Zero docs</a></li>
       <li><a href="https://learn.adafruit.com/adafruit-neopixel-uberguide/best-practices">Adafruit NeoPixel Überguide: best practices</a></li>
       <li><a href="https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf">Worldsemi WS2812B datasheet</a></li>
+      <li><a href="https://www.ti.com/product/SN74HCT32">TI SN74HCT32</a></li>
       <li><a href="https://www.ti.com/product/CD74HCT125">TI CD74HCT125</a></li>
       <li><a href="https://www.ikea.com/us/en/manuals/myggbett-door-window-sensor-smart__AA-2664591-3-100.pdf">IKEA MYGGBETT manual</a></li>
       <li><a href="https://csa-iot.org/csa_product/myggbett-door-window-sensor/">CSA Matter certificate: MYGGBETT</a></li>

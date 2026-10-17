@@ -3,14 +3,10 @@
 Glugg (Swedish for a small opening in a wall) watches the windows of the user's wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT door/window sensors (Matter over Thread) and lights one LED per open window on an 8×8 WS2812 panel (changed 2026-10-17 from an 8-LED stick whose pads broke off). Sensor n owns LED n, the first row along the data chain, in the order sensors were paired; the other 56 LEDs are only used by the startup ring and the red radio-failure state.
 
 - Full plan, wiring diagram, risks and sources: https://claude.ai/artifact/5PzD6ZSrUVS8m9g1BBY7jM (read it with the Artifact tool, `action: "read"`)
-  - Local snapshot: `docs/plan.html` (rev 19, 2026-10-17, the version published from it). It doesn't update itself; the artifact is the live version. It includes the publish skeleton; strip everything up to `<body>` and the closing `</body></html>` before republishing from it.
-- Parts list: `bom.csv` (Electrokit article numbers, `sku; qty`) has every electronic component.
-  - Not in it: a USB-C charger and cable (see Power), pin headers (both boards are the no-header versions), perfboard and a DIP-14 socket, hook-up wire, terminal blocks for the rails, and an enclosure.
-  - The first 7 lines were ordered on 2026-09-30. Two 1N5817 were bought; the design now uses one.
-  - Lines 8–9 (H2-Zero 41032818, Adafruit NeoPixel Stick 41012479) are parts the user already owned.
-  - The Mean Well supply (RS-15-5, or the HDR-15-5 that stood in for it on the BOM) was dropped on 2026-10-07 in favour of USB-C power.
-  - The last line (40811310, 1 kΩ metal film) is the UART series resistor. It was added after the order and is still to buy.
-  - The MYGGBETT sensors come from IKEA, not Electrokit.
+  - Local snapshot: `docs/plan.html` (rev 20, 2026-10-17, the version published from it). It doesn't update itself; the artifact is the live version. It includes the publish skeleton; strip everything up to `<body>` and the closing `</body></html>` before republishing from it.
+- Parts list: `bom.csv` (Electrokit article numbers, `sku; qty`) has every Electrokit part of the protoboard build as of 2026-10-17: both Zero boards (header versions 41036436 / 41032832), 74HCT32 40381032, 18-pin DIL socket, 1N5817, 330 Ω / 10 kΩ / 1 kΩ, 1000 µF, 100 nF, 3-pole 2.54 mm screw terminal 41002454, 40×60 mm protoboard 41010656.
+  - Not in it: the 8×8 WS2812 panel (bought elsewhere), a USB-C charger and cable (see Power), solid-core hook-up wire, and an enclosure. The MYGGBETT sensors come from IKEA.
+  - History: the 2026-09-30 order had the no-header boards and a 74HCT125N; the first S3 failed during the first protoboard attempt; the 2026-10-16 order brought the header boards, the 74HCT32 (the 74HCT125N was out of stock) and the protoboard parts. The 8-LED NeoPixel Stick's pads broke off (2026-10-17), so an 8×8 panel replaced it. The Mean Well supply was dropped on 2026-10-07 in favour of USB-C power.
 
 ## Settled decisions (don't reopen without asking the user)
 
@@ -24,21 +20,21 @@ Glugg (Swedish for a small opening in a wall) watches the windows of the user's 
 | Slots | 8 max for now (the panel's first row). Removing a sensor frees its slot, and the next pairing takes the lowest free slot. |
 | Scale-up (decided 2026-10-01; target raised to 64 on 2026-10-17) | The workshop has 4 rooms with ~30 windows each. Plan: **one Glugg unit per room** (S3 + H2 + its own 8×8 panel, one LED per window, its own Thread network), not one central controller with Thread routers. **Each unit supports up to 64 sensors**, so a room can grow or one unit can cover two rooms. Comes after Phase 4 (see Phase 6). |
 | Toolchain | **ESP-IDF v5.5.5** + **esp-matter release/v1.6** (component 1.6.0) + `espressif/led_strip` 3.0.3 |
-| Emulation | No Wokwi. The user skipped the Matter desktop tools (chip-tool + contact-sensor-app). Test LED code on the real H2-Zero + LED stick. |
+| Emulation | No Wokwi. The user skipped the Matter desktop tools (chip-tool + contact-sensor-app). Test LED code on the real S3 + LED panel. |
 
 Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the controller on it) and the ESP32-C5-Zero (no PSRAM, plus esp-matter #1851: children can't attach while BLE is initialised).
 
 ## Wiring (pins are fixed)
 
-- **Power (changed 2026-10-08):** a USB-C charger (any; the user has a GaN brick) plugs straight into the **S3's USB-C port**. The S3-Zero ties its `5V` pin to its USB VBUS, so the **S3's 5V pin is the +5 V rail**: it feeds the 74HCT125, the LED stick and the 1000 µF capacitor directly, and the H2 through the one **1N5817** (**S3 5V → diode → H2 5V**). No breakout, no mains, no earth. The H2 gets ~4.7 V, fine for its 3.3 V LDO.
+- **Power (changed 2026-10-08):** a USB-C charger (any; the user has a GaN brick) plugs straight into the **S3's USB-C port**. The S3-Zero ties its `5V` pin to its USB VBUS, so the **S3's 5V pin is the +5 V rail**: it feeds the 74HCT32, the LED panel and the 1000 µF capacitor directly, and the H2 through the one **1N5817** (**S3 5V → diode → H2 5V**). No breakout, no mains, no earth. The H2 gets ~4.7 V, fine for its 3.3 V LDO.
   - Current budget: everything runs through the S3-Zero's USB-C socket and its 5V trace (undocumented width), so keep the total under ~1 A. Boards ~0.3 A; amber at the 25% cap ~7 mA per LED. For ~30 LEDs, 50% amber (~0.7 A worst case, all windows open) is comfortable. Full brightness would need the LEDs fed straight from the charger (a USB-C breakout).
   - Console: power and console share the S3's one port. To pair or debug, swap the charger for the Mac (the unit restarts, pairings survive) and the Mac powers everything. Or put a USB-C hub with power pass-through between the charger, the S3 and the Mac.
-  - If a Mac port shuts off ("USB accessory needs too much power"), the 1000 µF capacitor's inrush is the likely cause; 100–220 µF is plenty for the stick at 25%.
+  - If a Mac port shuts off ("USB accessory needs too much power"), the 1000 µF capacitor's inrush is the likely cause; 100–220 µF is plenty at 25%.
   - To flash the H2 over its own USB while wired, unplug the S3's power first. Its diode then keeps the Mac's USB from feeding the S3, and the Mac's port doesn't see 5 V already on the H2's socket.
   - Replaced (2026-10-07 to 10-08): a USB-C breakout feeding a rail, with a second diode in front of the S3. Before that, a Mean Well mains supply.
 - **UART link:** H2 `TX` (GPIO24) → S3 **GPIO5** (UART1 RX), and S3 **GPIO6** (UART1 TX) → **1 kΩ** (at the S3 end) → H2 `RX` (GPIO23). The link runs at **460800** baud on UART port 1, which matches `ot_rcp`'s default. Espressif's example used GPIO17/18. `firmware/controller/main/esp_ot_config.h` now uses 5/6 in `radio_uart_config`.
   - Why the 1 kΩ: if the S3 runs while the H2 has no power (now only while wiring or flashing, since the H2 is fed from the S3's 5V pin), the S3's TX idles high and would back-power the H2 through the H2's input protection diode. The resistor limits that current and is harmless at 460800 baud. The other direction needs nothing: the H2-Zero board already has 499 Ω in series on its TX.
-- **LED data:** S3 **GPIO13** → 74HCT125N pin 2 (1A), with a 10 kΩ pull-down → pin 3 (1Y) → 330 Ω → stick DIN. 74HCT125N pins 1 (1OE) and 7 go to GND, and pin 14 goes to +5 V with 100 nF to GND. The unused gates' inputs and OE pins (4, 5, 9, 10, 12, 13) also go to GND. Leave their outputs (6, 8, 11) unconnected. A 1000 µF capacitor sits across the stick's power.
+- **LED data:** S3 **GPIO13** → 74HCT32 pins 9 and 10 (gate 3's inputs, tied together), with a 10 kΩ pull-down → pin 8 (gate 3's output) → 330 Ω → screw terminal DIN → panel DIN. Pin 14 to +5 V with 100 nF to GND, pin 7 to GND. Unused inputs: pins 1, 2, 12, 13 to +5 V and pins 4, 5 to GND; outputs 3, 6, 11 unconnected. A 1000 µF capacitor sits across the terminal's 5V and GND. On a 74HCT125 pin 10 would be an enable pin, so this wiring is '32-only. Hole-by-hole layout: the build guide artifact https://claude.ai/artifact/TmpncgYGMUV4vgWFSSakSP and `docs/protoboard-small*.svg`.
 - **Onboard parts:**
   - S3: RGB LED on GPIO21, BOOT on GPIO0, USB on GPIO19/20, UART0 on GPIO43/44. Strapping pins: 0, 3, 45, 46. GPIO33–37 are used by PSRAM.
   - H2: RGB LED on GPIO8, BOOT on GPIO9.
