@@ -1,4 +1,4 @@
-// Phase 0 LED test: checks the 8-LED stick wiring (level shifter, colour order, pixel order)
+// Phase 0 LED test: checks the LED wiring (level shifter, colour order, pixel order)
 // and shows every slot pattern the real firmware will use. Loops forever; watch the console.
 
 #include <inttypes.h>
@@ -92,19 +92,27 @@ static void run_patterns(const led_slot_state_t *slots, size_t count, uint32_t d
         uint32_t now_ms = (uint32_t)(esp_timer_get_time() / 1000);
         led_rgb_t px[NUM_LEDS];
         for (int i = 0; i < NUM_LEDS; i++) {
-            px[i] = led_pattern_color(slots[i % count], i, now_ms);
+            px[i] = led_pattern_color(slots[i % count], now_ms);
         }
         show(px);
         vTaskDelay(pdMS_TO_TICKS(FRAME_MS));
     }
 }
 
-static void startup_sweep(uint32_t duration_ms)
+static void startup_ring(uint32_t duration_ms)
 {
-    static const led_slot_state_t k_starting[] = {LED_SLOT_STARTING};
-    ESP_LOGI(TAG, "Startup sweep for %" PRIu32 " s: a dim white dot goes back and forth across all LEDs",
+    ESP_LOGI(TAG, "Startup ring for %" PRIu32 " s: a dim white ring breathes out from the middle of the 8x8 panel",
              duration_ms / 1000);
-    run_patterns(k_starting, 1, duration_ms);
+    int64_t start_us = esp_timer_get_time();
+    while ((esp_timer_get_time() - start_us) / 1000 < duration_ms) {
+        uint32_t now_ms = (uint32_t)(esp_timer_get_time() / 1000);
+        led_rgb_t px[NUM_LEDS];
+        for (int i = 0; i < NUM_LEDS; i++) {
+            px[i] = led_pattern_startup(i % LED_PATTERN_PANEL_SIZE, i / LED_PATTERN_PANEL_SIZE, now_ms);
+        }
+        show(px);
+        vTaskDelay(pdMS_TO_TICKS(FRAME_MS));
+    }
 }
 
 static void slot_patterns(uint32_t duration_ms)
@@ -129,7 +137,7 @@ void app_main(void)
     for (;;) {
         colour_check();
         chase();
-        startup_sweep(6000);
+        startup_ring(6000);
         slot_patterns(15000);
         fill((led_rgb_t){0}, 1000);
     }

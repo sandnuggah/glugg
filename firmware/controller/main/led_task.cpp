@@ -11,6 +11,8 @@
 static const char *TAG = "led_task";
 
 #define LED_GPIO       13
+// An 8 x 8 WS2812 panel. Slot n lights pixel n, so the slots are the first row along the data chain (DIN end).
+#define PANEL_LEDS     (LED_PATTERN_PANEL_SIZE * LED_PATTERN_PANEL_SIZE)
 #define FRAME_MS       20
 #define TASK_STACK     3072
 #define TASK_PRIORITY  2
@@ -29,9 +31,24 @@ static void led_task(void *)
                 states[i] = sensor_mgr_led_state(m.get(), i, now);
             }
         }
+        // Before the network is up the whole panel shows the startup ring; a radio failure turns it all red.
+        // Otherwise only the slot pixels are lit. Rows are consecutive pixels, so pixel i is at (i % 8, i / 8),
+        // and the ring looks the same whichever way a row runs.
+        bool starting = false, failed = false;
         for (int i = 0; i < SLOT_COUNT; i++) {
-            led_rgb_t c = led_pattern_color(states[i], i, now);
-            led_strip_set_pixel(s_strip, i, c.r, c.g, c.b);
+            starting |= states[i] == LED_SLOT_STARTING;
+            failed |= states[i] == LED_SLOT_RADIO_FAILED;
+        }
+        for (int p = 0; p < PANEL_LEDS; p++) {
+            led_rgb_t c = {0, 0, 0};
+            if (failed) {
+                c = led_pattern_color(LED_SLOT_RADIO_FAILED, now);
+            } else if (p < SLOT_COUNT && states[p] != LED_SLOT_STARTING) {
+                c = led_pattern_color(states[p], now); // a slot being paired shows its pulse even during startup
+            } else if (starting) {
+                c = led_pattern_startup(p % LED_PATTERN_PANEL_SIZE, p / LED_PATTERN_PANEL_SIZE, now);
+            }
+            led_strip_set_pixel(s_strip, p, c.r, c.g, c.b);
         }
         led_strip_refresh(s_strip);
         vTaskDelay(pdMS_TO_TICKS(FRAME_MS));
@@ -42,16 +59,16 @@ void led_task_start()
 {
     led_strip_config_t strip_config = {
         .strip_gpio_num = LED_GPIO,
-        .max_leds = SLOT_COUNT,
+        .max_leds = PANEL_LEDS,
         .led_model = LED_MODEL_WS2812,
         .color_component_format = LED_STRIP_COLOR_COMPONENT_FMT_GRB,
     };
-    // With DMA the whole frame (8 x 24 bits) is in one buffer, so no refill interrupt runs mid-frame; a refill held
-    // off by a flash write (NVS save) would garble the LEDs.
+    // With DMA the whole frame (64 x 24 bits, plus the reset code) is in one buffer, so no refill interrupt runs
+    // mid-frame; a refill held off by a flash write (NVS save) would garble the LEDs.
     led_strip_rmt_config_t rmt_config = {
         .clk_src = RMT_CLK_SRC_DEFAULT,
         .resolution_hz = 10 * 1000 * 1000,
-        .mem_block_symbols = 256,
+        .mem_block_symbols = PANEL_LEDS * 24 + 64,
         .flags = {.with_dma = true},
     };
     ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &s_strip));

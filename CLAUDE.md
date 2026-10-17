@@ -1,9 +1,9 @@
 # Glugg
 
-Glugg (Swedish for a small opening in a wall) watches the windows of the user's wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT door/window sensors (Matter over Thread) and lights one LED per open window on an 8-LED WS2812 stick. Sensor n owns LED n, in the order sensors were paired.
+Glugg (Swedish for a small opening in a wall) watches the windows of the user's wood workshop. An ESP32-S3 pairs with IKEA MYGGBETT door/window sensors (Matter over Thread) and lights one LED per open window on an 8×8 WS2812 panel (changed 2026-10-17 from an 8-LED stick whose pads broke off). Sensor n owns LED n, the first row along the data chain, in the order sensors were paired; the other 56 LEDs are only used by the startup ring and the red radio-failure state.
 
 - Full plan, wiring diagram, risks and sources: https://claude.ai/artifact/5PzD6ZSrUVS8m9g1BBY7jM (read it with the Artifact tool, `action: "read"`)
-  - Local snapshot: `docs/plan.html` (rev 17, 2026-10-08, the version published from it). It doesn't update itself; the artifact is the live version. It includes the publish skeleton; strip everything up to `<body>` and the closing `</body></html>` before republishing from it.
+  - Local snapshot: `docs/plan.html` (rev 19, 2026-10-17, the version published from it). It doesn't update itself; the artifact is the live version. It includes the publish skeleton; strip everything up to `<body>` and the closing `</body></html>` before republishing from it.
 - Parts list: `bom.csv` (Electrokit article numbers, `sku; qty`) has every electronic component.
   - Not in it: a USB-C charger and cable (see Power), pin headers (both boards are the no-header versions), perfboard and a DIP-14 socket, hook-up wire, terminal blocks for the rails, and an enclosure.
   - The first 7 lines were ordered on 2026-09-30. Two 1N5817 were bought; the design now uses one.
@@ -20,9 +20,9 @@ Glugg (Swedish for a small opening in a wall) watches the windows of the user's 
 | Thread radio | Waveshare **ESP32-H2-Zero**, flashed with ESP-IDF `ot_rcp` (`firmware/rcp`) and connected to the S3 over UART |
 | Network | **Fully offline, no Wi-Fi.** The S3 runs the Thread network plus the SRP and DNS-SD servers itself. |
 | Pairing | USB serial console on the S3: `pair <11-digit code>` |
-| LEDs | open = warm amber at about 25% brightness · closed or empty slot = off · pairing into slot = slow green pulse · sensor not heard from = dim blue blink · starting up = a dim white dot sweeping back and forth across all 8 LEDs until the Thread network and Matter's lookup service are up · paired sensor that hasn't reported yet (since boot or pairing) = steady dim white, until it reports or the blue blink takes over after 2 min · Thread radio (H2) not responding = all LEDs red for a few seconds, then the S3 restarts |
-| Slots | 8 max for now (one 8-LED stick). Removing a sensor frees its slot, and the next pairing takes the lowest free slot. |
-| Scale-up (decided 2026-10-01) | The workshop has 4 rooms with ~30 windows each. Plan: **one Glugg unit per room** (S3 + H2 + its own LED strip, one LED per window, its own Thread network), not one central controller with Thread routers. Comes after Phase 4 (see Phase 6). |
+| LEDs | open = warm amber at about 25% brightness · closed or empty slot = off · pairing into slot = slow green pulse · sensor not heard from = dim blue blink · starting up = a dim white ring breathing out from the panel's centre (every 2.2 s) until the Thread network and Matter's lookup service are up · paired sensor that hasn't reported yet (since boot or pairing) = steady dim white, until it reports or the blue blink takes over after 2 min · Thread radio (H2) not responding = the whole panel red for a few seconds, then the S3 restarts |
+| Slots | 8 max for now (the panel's first row). Removing a sensor frees its slot, and the next pairing takes the lowest free slot. |
+| Scale-up (decided 2026-10-01; target raised to 64 on 2026-10-17) | The workshop has 4 rooms with ~30 windows each. Plan: **one Glugg unit per room** (S3 + H2 + its own 8×8 panel, one LED per window, its own Thread network), not one central controller with Thread routers. **Each unit supports up to 64 sensors**, so a room can grow or one unit can cover two rooms. Comes after Phase 4 (see Phase 6). |
 | Toolchain | **ESP-IDF v5.5.5** + **esp-matter release/v1.6** (component 1.6.0) + `espressif/led_strip` 3.0.3 |
 | Emulation | No Wokwi. The user skipped the Matter desktop tools (chip-tool + contact-sensor-app). Test LED code on the real H2-Zero + LED stick. |
 
@@ -88,12 +88,14 @@ Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the control
    - **Not started.**
 5. **Enclosure + README.**
    - **Not started.**
-6. **Scale to one unit per room (~30 sensors each).** Not started; size it from Phase 4's measured memory use per sensor.
-   - `SLOT_COUNT` 8 → ~30 (bump the slot blob `VERSION` and migrate), a ~30-LED strip on the same data path.
-   - OpenThread child table (`CONFIG_OPENTHREAD_MLE_MAX_CHILDREN`) 10 → ≥32. Matter secure session pool 17 → ~40, exchanges and handshake pools to match.
-   - Cap concurrent subscribe attempts (e.g. 8) so 30 sleepy sensors don't all reconnect at once after a power cut.
+6. **Scale to 64 sensors per unit (target changed 2026-10-17 from ~30), one unit per room.** Not started; size it from Phase 4's measured memory use per sensor (free internal RAM and PSRAM with 1, 2 and 3 sensors, extrapolated to 64).
+   - `SLOT_COUNT` 8 → 64 (bump the slot blob `VERSION` and migrate today's pairings). Slot n = LED n across the whole 8×8 panel; all 64 amber at 25% is about 0.45 A, inside the S3's budget.
+   - OpenThread child table (`CONFIG_OPENTHREAD_MLE_MAX_CHILDREN`) 10 → ~70 (ceiling 511). Matter secure session pool (`CHIP_CONFIG_SECURE_SESSION_POOL_SIZE`) 17 → ~72, `CHIP_CONFIG_CONTROLLER_MAX_ACTIVE_DEVICES` 8 → 64 (the SDK default; our `matter_project_config.h` lowers it), CASE session resumption cache → 64.
+   - The H2's `CONFIG_IEEE802154_PENDING_TABLE_SIZE` (20, max 100) only holds sensors with a message waiting right now; when it overflows OpenThread acks every poll with "pending", which costs sensor battery but doesn't fail. Raise it to 64 if the reconnect storm fills it.
+   - Matter's object pools are static (internal RAM, roughly 0.5–1 KB per sensor). If internal RAM runs short, `CONFIG_CHIP_SYSTEM_CONFIG_POOL_USE_HEAP` moves them to the heap, where allocations over 512 B go to PSRAM.
+   - Cap concurrent subscribe attempts (e.g. 8) so 64 sleepy sensors don't all reconnect at once after a power cut; expect all back within 2–3 min. Time it.
    - `pair <code> <slot>`, so a window's LED position is chosen, not "lowest free".
-   - Probably no Thread router needed inside one room; check link quality with `matter esp ot_cli child table`.
+   - Traffic is negligible (64 polls per ~15 s plus 30-min keep-alives). Range is the open question: every sensor attaches directly to the H2. If some can't reach it, add a Thread router: a spare ESP32-H2 with OpenThread's full-device (FTD) firmware, given the network key; no Matter pairing needed. Check link quality with `matter esp ot_cli child table`.
 
 **Parked: pairing from the user's iPhone (for convenience; nothing decided).** Raise it again once Phase 2 pairs a MYGGBETT, and before Phase 6.
 - The idea: a Bluetooth console on the S3 (Nordic UART service layout, added through the ESP32 BLE manager's `ConfigureExtraServices`, with its own advertising and GAP handler) next to the USB console, opened for a few minutes by pressing the S3's BOOT button.

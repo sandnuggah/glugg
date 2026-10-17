@@ -2,7 +2,7 @@
 
 *Glugg* is Swedish for a small opening in a wall. This one keeps an eye on the windows of a wood workshop.
 
-An ESP32-S3 pairs with IKEA MYGGBETT door/window sensors and lights one LED per open window on an 8-LED stick. An ESP32-H2 is its Thread radio. It runs fully offline: no Wi-Fi, no app, no cloud.
+An ESP32-S3 pairs with IKEA MYGGBETT door/window sensors and lights one LED per open window on an 8×8 LED panel. An ESP32-H2 is its Thread radio. It runs fully offline: no Wi-Fi, no app, no cloud.
 
 The firmware is written and builds, but hasn't run on the real hardware yet.
 
@@ -14,7 +14,7 @@ All from [Electrokit](https://www.electrokit.com/en/quickorder) except the senso
 |---|---|--:|
 | Waveshare ESP32-S3-Zero-N8R8 | 41036435 | 1 |
 | Waveshare ESP32-H2-Zero | 41032818 | 1 |
-| Adafruit NeoPixel Stick, 8 LEDs | 41012479 | 1 |
+| 8×8 WS2812 LED panel (NeoPixel or compatible) | | 1 |
 | 74HCT125N quad buffer | 40380125 | 1 |
 | 1N5817 Schottky diode | 40315817 | 1 |
 | Resistor 330 Ω | 40811233 | 1 |
@@ -36,7 +36,7 @@ You'll also need a USB-C charger and cable, pin headers (neither board comes wit
 
 ## Usage
 
-Plug in the power. The LEDs sweep white for 10–20 seconds while the network starts, then show each window:
+Plug in the power. A dim white ring breathes out from the middle of the panel for 10–20 seconds while the network starts. Then the first row shows each window:
 
 | LED | Means |
 |---|---|
@@ -46,7 +46,7 @@ Plug in the power. The LEDs sweep white for 10–20 seconds while the network st
 | Dim white | Sensor paired but hasn't reported yet |
 | Blue blink | Sensor not heard from for 2 minutes (battery, range) |
 
-LED 1 is the end nearest the wires. To manage sensors, connect a computer to the S3's USB-C port and open its serial console (for example `idf.py monitor`):
+LED 1 is the first LED after the panel's DIN pad, and the first row runs on from there. To manage sensors, connect a computer to the S3's USB-C port and open its serial console (for example `idf.py monitor`):
 
 ```
 pair 3497-011-2332       add a sensor
