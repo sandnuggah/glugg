@@ -87,7 +87,9 @@ Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the control
    - **Verified on the protoboard (2026-10-17), on the 8×8 panel:** startup ring, then a dark panel; `pair`, with open/closed on LED 1 (amber/off); `list`; recovery after a reboot without re-pairing; `remove`; `factory-reset confirm`. `identify` is accepted, but MYGGBETT shows nothing visible (see MYGGBETT facts). Still to test: the blue "not heard from" blink (battery out, ~33 min). At the time the 74HCT32 was out of its socket (it had been damaged; debugged in a separate session), so the panel ran on 3.3 V data.
    - Host logic is in `firmware/components/app_core` + `led_pattern` (tests: `make -C firmware/components/app_core/test` and `make -C firmware/components/led_pattern/test`). The Matter glue is in `firmware/controller/main` (see its README). It builds for the S3.
 4. **Multiple sensors + 48 h soak test.**
-   - **Not started.**
+   - **Memory measured 2026-10-17** (`matter esp diagnostics mem-dump`, after each sensor's LED showed its state). Free internal / PSRAM in bytes: 0 sensors 215 447 / 8 097 256 · 1 sensor 214 839 / 8 096 512 · 2 sensors 214 323 / 8 095 780 · 2 sensors after a reboot 214 895 / 8 096 496. Lowest free internal since boot ~188–189 KB (the pairing/BLE peak), largest free internal block 147 KB.
+   - So the heap costs about 0.3–0.6 KB internal + 0.4–0.75 KB PSRAM per sensor: ~40 KB internal + ~50 KB PSRAM for 64. The Phase 6 pool increases are static (sized at build time, not in these numbers); measure them with `idf.py size` on a build with the 64-sensor settings.
+   - **Two sensors verified 2026-10-17** (slots 1 and 2): each window drives only its own LED; `remove 1` + re-pair lands on slot 1 again while slot 2 keeps working. Still to do: the 48 h soak with a power cut, a battery swap and the 35-min battery-out blue-blink test.
 5. **Enclosure + README.**
    - **Not started.**
 6. **Scale to 64 sensors per unit (target changed 2026-10-17 from ~30), one unit per room.** Not started; size it from Phase 4's measured memory use per sensor (free internal RAM and PSRAM with 1, 2 and 3 sensors, extrapolated to 64).
@@ -96,7 +98,7 @@ Rejected options: the H2 alone (no PSRAM, and Espressif doesn't test the control
    - The H2's `CONFIG_IEEE802154_PENDING_TABLE_SIZE` (20, max 100) only holds sensors with a message waiting right now; when it overflows OpenThread acks every poll with "pending", which costs sensor battery but doesn't fail. Raise it to 64 if the reconnect storm fills it.
    - Matter's object pools are static (internal RAM, roughly 0.5–1 KB per sensor). If internal RAM runs short, `CONFIG_CHIP_SYSTEM_CONFIG_POOL_USE_HEAP` moves them to the heap, where allocations over 512 B go to PSRAM.
    - Cap concurrent subscribe attempts (e.g. 8) so 64 sleepy sensors don't all reconnect at once after a power cut; expect all back within 2–3 min. Time it.
-   - `pair <code> <slot>`, so a window's LED position is chosen, not "lowest free".
+   - `pair <code> <slot>`, so a window's LED position is chosen, not "lowest free". The slot parser in `app_core/command.c` only reads one digit (1–8); make it read 1–64.
    - Traffic is negligible (64 polls per ~15 s plus 30-min keep-alives). Range is the open question: every sensor attaches directly to the H2. If some can't reach it, add a Thread router: a spare ESP32-H2 with OpenThread's full-device (FTD) firmware, given the network key; no Matter pairing needed. Check link quality with `matter esp ot_cli child table`.
 
 **Parked: pairing from the user's iPhone (for convenience; nothing decided).** Raise it again once Phase 2 pairs a MYGGBETT, and before Phase 6.
