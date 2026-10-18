@@ -1,6 +1,6 @@
 # Glugg carrier board (rev A)
 
-A 60 × 50 mm, 2-layer, through-hole PCB that replaces the hand-wired protoboard. It carries exactly the verified protoboard circuit (see `CLAUDE.md`, Wiring), so the firmware is unchanged.
+A 70 × 60 mm, 2-layer, through-hole PCB with 3 mm rounded corners that replaces the hand-wired protoboard. It carries exactly the verified protoboard circuit (see `CLAUDE.md`, Wiring), so the firmware is unchanged.
 
 - `glugg.kicad_pro` / `.kicad_sch` / `.kicad_pcb`: the KiCad 9 project. `glugg.kicad_sym` and `glugg.pretty/` hold the two Zero boards' symbols, the 74HCT32 as one block, and the Zero-on-female-headers footprint.
 - `fab/`: what to order and build from.
