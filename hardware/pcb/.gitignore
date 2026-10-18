@@ -1,0 +1,7 @@
+# KiCad local state and backups
+*.kicad_prl
+*-backups/
+fp-info-cache
+*.lck
+# Loose fabrication files; fab/glugg-rev-A-gerbers.zip holds them
+fab/gerbers/

@@ -1,0 +1,15 @@
+Ref;Qty;Part;Electrokit;Note
+U1;1;Waveshare ESP32-S3-Zero-N8R8 with headers;41036436;Plugs into two 9-pin female headers
+U2;1;Waveshare ESP32-H2-Zero with headers;41032832;Plugs into two 9-pin female headers
+U1/U2;1;Female header 2.54 mm 1x40;41003010;Cut into four 1x9 strips (each cut costs one position)
+U3;1;74HCT32 DIP-14 (SN74HCT32N);40381032;Gate 3 buffers the LED data; not a plain 74HC32
+U3;1;DIL socket 14-pin;40410014;
+D1;1;1N5817 Schottky diode;40315817;Band (cathode) towards the silkscreen K, left
+R1;1;Resistor 1 kOhm metal film;40811310;Bands: brown black black brown brown
+R2;1;Resistor 10 kOhm metal film;40811410;Bands: brown black black red brown
+R3;1;Resistor 330 Ohm metal film;40811233;Bands: orange orange black black brown; 7.62 mm pitch
+C1;1;Ceramic capacitor 100 nF 5 mm;41015538;
+C2;1;Electrolytic capacitor 1000 uF 16 V 10x16 mm;41017694;Stripe (minus) away from the + mark
+J1;1;Pluggable screw terminal 5.08 mm 3-pole, male header (board side);41032970;Check its pins fit and its plug faces the bottom edge (1:1 print)
+J1;1;Pluggable screw terminal 5.08 mm 3-pole, female plug (wire side);40210012;Takes the LED panel's 5V / DIN / GND wires
+H1-H4;4;M3 screws and standoffs;;For the enclosure

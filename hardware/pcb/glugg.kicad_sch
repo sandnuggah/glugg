@@ -1,0 +1,1274 @@
+(kicad_sch (version 20250114) (generator "eeschema") (generator_version "9.0") (uuid "43d927c6-5da1-4ed1-8a2e-da4aaad175a7") (paper "A4")
+(title_block (title "Glugg carrier board") (date "2026-10-18") (rev "A") (comment 1 "Waveshare ESP32-S3-Zero + ESP32-H2-Zero, 74HCT32 LED buffer, 8x8 WS2812 panel"))
+(lib_symbols
+(symbol "glugg:ESP32-S3-Zero" (pin_names (offset 1.016)) (exclude_from_sim no) (in_bom yes) (on_board yes)
+  (property "Reference" "U" (at 0 15.24 0) (effects (font (size 1.27 1.27))))
+  (property "Value" "ESP32-S3-Zero" (at 0 -15.24 0) (effects (font (size 1.27 1.27))))
+  (property "Footprint" "glugg:Waveshare_Zero_Socketed" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
+  (property "Datasheet" "https://www.waveshare.com/wiki/ESP32-S3-Zero" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
+  (property "Description" "Waveshare ESP32-S3-Zero-N8R8; pins numbered from the USB-C end, left column 1-9, right 10-18" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
+  (symbol "ESP32-S3-Zero_0_1" (rectangle (start -10.16 12.7) (end 10.16 -12.7) (stroke (width 0.254) (type default)) (fill (type background))))
+  (symbol "ESP32-S3-Zero_1_1" (pin power_out line (at -12.7 10.16 0) (length 2.54) (name "5V" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27))))) (pin power_out line (at -12.7 7.62 0) (length 2.54) (name "GND" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27))))) (pin power_out line (at -12.7 5.08 0) (length 2.54) (name "3V3" (effects (font (size 1.27 1.27)))) (number "3" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at -12.7 2.54 0) (length 2.54) (name "GPIO1" (effects (font (size 1.27 1.27)))) (number "4" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at -12.7 0 0) (length 2.54) (name "GPIO2" (effects (font (size 1.27 1.27)))) (number "5" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at -12.7 -2.54 0) (length 2.54) (name "GPIO3" (effects (font (size 1.27 1.27)))) (number "6" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at -12.7 -5.08 0) (length 2.54) (name "GPIO4" (effects (font (size 1.27 1.27)))) (number "7" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at -12.7 -7.62 0) (length 2.54) (name "GPIO5" (effects (font (size 1.27 1.27)))) (number "8" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at -12.7 -10.16 0) (length 2.54) (name "GPIO6" (effects (font (size 1.27 1.27)))) (number "9" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 10.16 180) (length 2.54) (name "TX(43)" (effects (font (size 1.27 1.27)))) (number "10" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 7.62 180) (length 2.54) (name "RX(44)" (effects (font (size 1.27 1.27)))) (number "11" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 5.08 180) (length 2.54) (name "GPIO13" (effects (font (size 1.27 1.27)))) (number "12" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 2.54 180) (length 2.54) (name "GPIO12" (effects (font (size 1.27 1.27)))) (number "13" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 0 180) (length 2.54) (name "GPIO11" (effects (font (size 1.27 1.27)))) (number "14" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 -2.54 180) (length 2.54) (name "GPIO10" (effects (font (size 1.27 1.27)))) (number "15" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 -5.08 180) (length 2.54) (name "GPIO9" (effects (font (size 1.27 1.27)))) (number "16" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 -7.62 180) (length 2.54) (name "GPIO8" (effects (font (size 1.27 1.27)))) (number "17" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 -10.16 180) (length 2.54) (name "GPIO7" (effects (font (size 1.27 1.27)))) (number "18" (effects (font (size 1.27 1.27)))))))
+(symbol "glugg:ESP32-H2-Zero" (pin_names (offset 1.016)) (exclude_from_sim no) (in_bom yes) (on_board yes)
+  (property "Reference" "U" (at 0 15.24 0) (effects (font (size 1.27 1.27))))
+  (property "Value" "ESP32-H2-Zero" (at 0 -15.24 0) (effects (font (size 1.27 1.27))))
+  (property "Footprint" "glugg:Waveshare_Zero_Socketed" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
+  (property "Datasheet" "https://www.waveshare.com/wiki/ESP32-H2-Zero" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
+  (property "Description" "Waveshare ESP32-H2-Zero; pins numbered from the USB-C end, left column 1-9, right 10-18" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
+  (symbol "ESP32-H2-Zero_0_1" (rectangle (start -10.16 12.7) (end 10.16 -12.7) (stroke (width 0.254) (type default)) (fill (type background))))
+  (symbol "ESP32-H2-Zero_1_1" (pin power_in line (at -12.7 10.16 0) (length 2.54) (name "5V" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27))))) (pin power_in line (at -12.7 7.62 0) (length 2.54) (name "GND" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27))))) (pin power_out line (at -12.7 5.08 0) (length 2.54) (name "3V3" (effects (font (size 1.27 1.27)))) (number "3" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at -12.7 2.54 0) (length 2.54) (name "GPIO0" (effects (font (size 1.27 1.27)))) (number "4" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at -12.7 0 0) (length 2.54) (name "GPIO1" (effects (font (size 1.27 1.27)))) (number "5" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at -12.7 -2.54 0) (length 2.54) (name "GPIO2" (effects (font (size 1.27 1.27)))) (number "6" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at -12.7 -5.08 0) (length 2.54) (name "GPIO3" (effects (font (size 1.27 1.27)))) (number "7" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at -12.7 -7.62 0) (length 2.54) (name "GPIO4" (effects (font (size 1.27 1.27)))) (number "8" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at -12.7 -10.16 0) (length 2.54) (name "GPIO5" (effects (font (size 1.27 1.27)))) (number "9" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 10.16 180) (length 2.54) (name "TX(24)" (effects (font (size 1.27 1.27)))) (number "10" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 7.62 180) (length 2.54) (name "RX(23)" (effects (font (size 1.27 1.27)))) (number "11" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 5.08 180) (length 2.54) (name "GPIO25" (effects (font (size 1.27 1.27)))) (number "12" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 2.54 180) (length 2.54) (name "GPIO22" (effects (font (size 1.27 1.27)))) (number "13" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 0 180) (length 2.54) (name "GPIO14" (effects (font (size 1.27 1.27)))) (number "14" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 -2.54 180) (length 2.54) (name "GPIO13" (effects (font (size 1.27 1.27)))) (number "15" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 -5.08 180) (length 2.54) (name "GPIO12" (effects (font (size 1.27 1.27)))) (number "16" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 -7.62 180) (length 2.54) (name "GPIO11" (effects (font (size 1.27 1.27)))) (number "17" (effects (font (size 1.27 1.27))))) (pin bidirectional line (at 12.7 -10.16 180) (length 2.54) (name "GPIO10" (effects (font (size 1.27 1.27)))) (number "18" (effects (font (size 1.27 1.27)))))))
+(symbol "glugg:74HCT32" (pin_names (offset 1.016)) (exclude_from_sim no) (in_bom yes) (on_board yes)
+  (property "Reference" "U" (at 2.54 15.24 0) (effects (font (size 1.27 1.27))))
+  (property "Value" "74HCT32" (at 2.54 -15.24 0) (effects (font (size 1.27 1.27))))
+  (property "Footprint" "Package_DIP:DIP-14_W7.62mm_Socket" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
+  (property "Datasheet" "https://www.ti.com/lit/ds/symlink/sn74hct32.pdf" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
+  (property "Description" "Quad 2-input OR gate, TTL-level inputs (reads 3.3 V as high at 5 V)" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
+  (symbol "74HCT32_0_1" (rectangle (start -10.16 11.43) (end 10.16 -11.43) (stroke (width 0.254) (type default)) (fill (type background))))
+  (symbol "74HCT32_1_1" (pin input line (at -12.7 8.89 0) (length 2.54) (name "1A" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27))))) (pin input line (at -12.7 6.35 0) (length 2.54) (name "1B" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27))))) (pin input line (at -12.7 3.81 0) (length 2.54) (name "2A" (effects (font (size 1.27 1.27)))) (number "4" (effects (font (size 1.27 1.27))))) (pin input line (at -12.7 1.27 0) (length 2.54) (name "2B" (effects (font (size 1.27 1.27)))) (number "5" (effects (font (size 1.27 1.27))))) (pin input line (at -12.7 -1.27 0) (length 2.54) (name "3A" (effects (font (size 1.27 1.27)))) (number "9" (effects (font (size 1.27 1.27))))) (pin input line (at -12.7 -3.81 0) (length 2.54) (name "3B" (effects (font (size 1.27 1.27)))) (number "10" (effects (font (size 1.27 1.27))))) (pin input line (at -12.7 -6.35 0) (length 2.54) (name "4A" (effects (font (size 1.27 1.27)))) (number "12" (effects (font (size 1.27 1.27))))) (pin input line (at -12.7 -8.89 0) (length 2.54) (name "4B" (effects (font (size 1.27 1.27)))) (number "13" (effects (font (size 1.27 1.27))))) (pin output line (at 12.7 7.62 180) (length 2.54) (name "1Y" (effects (font (size 1.27 1.27)))) (number "3" (effects (font (size 1.27 1.27))))) (pin output line (at 12.7 2.54 180) (length 2.54) (name "2Y" (effects (font (size 1.27 1.27)))) (number "6" (effects (font (size 1.27 1.27))))) (pin output line (at 12.7 -2.54 180) (length 2.54) (name "3Y" (effects (font (size 1.27 1.27)))) (number "8" (effects (font (size 1.27 1.27))))) (pin output line (at 12.7 -7.62 180) (length 2.54) (name "4Y" (effects (font (size 1.27 1.27)))) (number "11" (effects (font (size 1.27 1.27))))) (pin power_in line (at 0 13.97 270) (length 2.54) (name "VCC" (effects (font (size 1.27 1.27)))) (number "14" (effects (font (size 1.27 1.27))))) (pin power_in line (at 0 -13.97 90) (length 2.54) (name "GND" (effects (font (size 1.27 1.27)))) (number "7" (effects (font (size 1.27 1.27)))))))
+(symbol "Device:D"
+		(pin_numbers
+			(hide yes)
+		)
+		(pin_names
+			(offset 1.016)
+			(hide yes)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "D"
+			(at 0 2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "D"
+			(at 0 -2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Diode"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Device" "D"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "diode"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "TO-???* *_Diode_* *SingleDiode* D_*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "D_0_1"
+			(polyline
+				(pts
+					(xy -1.27 1.27) (xy -1.27 -1.27)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 1.27 1.27) (xy 1.27 -1.27) (xy -1.27 0) (xy 1.27 1.27)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 1.27 0) (xy -1.27 0)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "D_1_1"
+			(pin passive line
+				(at -3.81 0 0)
+				(length 2.54)
+				(name "K"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 3.81 0 180)
+				(length 2.54)
+				(name "A"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+(symbol "Device:R"
+		(pin_numbers
+			(hide yes)
+		)
+		(pin_names
+			(offset 0)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "R"
+			(at 2.032 0 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "R"
+			(at 0 0 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at -1.778 0 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "R res resistor"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "R_*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "R_0_1"
+			(rectangle
+				(start -1.016 -2.54)
+				(end 1.016 2.54)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "R_1_1"
+			(pin passive line
+				(at 0 3.81 270)
+				(length 1.27)
+				(name "~"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -3.81 90)
+				(length 1.27)
+				(name "~"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+(symbol "Device:C"
+		(pin_numbers
+			(hide yes)
+		)
+		(pin_names
+			(offset 0.254)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "C"
+			(at 0.635 2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "C"
+			(at 0.635 -2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 0.9652 -3.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "cap capacitor"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "C_*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "C_0_1"
+			(polyline
+				(pts
+					(xy -2.032 0.762) (xy 2.032 0.762)
+				)
+				(stroke
+					(width 0.508)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -2.032 -0.762) (xy 2.032 -0.762)
+				)
+				(stroke
+					(width 0.508)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "C_1_1"
+			(pin passive line
+				(at 0 3.81 270)
+				(length 2.794)
+				(name "~"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -3.81 90)
+				(length 2.794)
+				(name "~"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+(symbol "Device:C_Polarized"
+		(pin_numbers
+			(hide yes)
+		)
+		(pin_names
+			(offset 0.254)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "C"
+			(at 0.635 2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "C_Polarized"
+			(at 0.635 -2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 0.9652 -3.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Polarized capacitor"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "cap capacitor"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "CP_*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "C_Polarized_0_1"
+			(rectangle
+				(start -2.286 0.508)
+				(end 2.286 1.016)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -1.778 2.286) (xy -0.762 2.286)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -1.27 2.794) (xy -1.27 1.778)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(rectangle
+				(start 2.286 -0.508)
+				(end -2.286 -1.016)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type outline)
+				)
+			)
+		)
+		(symbol "C_Polarized_1_1"
+			(pin passive line
+				(at 0 3.81 270)
+				(length 2.794)
+				(name "~"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -3.81 90)
+				(length 2.794)
+				(name "~"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+(symbol "Connector:Screw_Terminal_01x03"
+		(pin_names
+			(offset 1.016)
+			(hide yes)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "J"
+			(at 0 5.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "Screw_Terminal_01x03"
+			(at 0 -5.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic screw terminal, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "screw terminal"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "TerminalBlock*:*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "Screw_Terminal_01x03_1_1"
+			(rectangle
+				(start -1.27 3.81)
+				(end 1.27 -3.81)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+			(polyline
+				(pts
+					(xy -0.5334 2.8702) (xy 0.3302 2.032)
+				)
+				(stroke
+					(width 0.1524)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -0.5334 0.3302) (xy 0.3302 -0.508)
+				)
+				(stroke
+					(width 0.1524)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -0.5334 -2.2098) (xy 0.3302 -3.048)
+				)
+				(stroke
+					(width 0.1524)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -0.3556 3.048) (xy 0.508 2.2098)
+				)
+				(stroke
+					(width 0.1524)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -0.3556 0.508) (xy 0.508 -0.3302)
+				)
+				(stroke
+					(width 0.1524)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -0.3556 -2.032) (xy 0.508 -2.8702)
+				)
+				(stroke
+					(width 0.1524)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(circle
+				(center 0 2.54)
+				(radius 0.635)
+				(stroke
+					(width 0.1524)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(circle
+				(center 0 0)
+				(radius 0.635)
+				(stroke
+					(width 0.1524)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(circle
+				(center 0 -2.54)
+				(radius 0.635)
+				(stroke
+					(width 0.1524)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(pin passive line
+				(at -5.08 2.54 0)
+				(length 3.81)
+				(name "Pin_1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -5.08 0 0)
+				(length 3.81)
+				(name "Pin_2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -5.08 -2.54 0)
+				(length 3.81)
+				(name "Pin_3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+(symbol "Mechanical:MountingHole"
+		(pin_names
+			(offset 1.016)
+		)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(property "Reference" "H"
+			(at 0 5.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "MountingHole"
+			(at 0 3.175 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole without connection"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "mounting hole"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "MountingHole*"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "MountingHole_0_1"
+			(circle
+				(center 0 0)
+				(radius 1.27)
+				(stroke
+					(width 1.27)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+(symbol "power:PWR_FLAG"
+		(power)
+		(pin_numbers
+			(hide yes)
+		)
+		(pin_names
+			(offset 0)
+			(hide yes)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "#FLG"
+			(at 0 1.905 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 0 3.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Special symbol for telling ERC where power comes from"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "flag power"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "PWR_FLAG_0_0"
+			(pin power_out line
+				(at 0 0 90)
+				(length 0)
+				(name "~"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(symbol "PWR_FLAG_0_1"
+			(polyline
+				(pts
+					(xy 0 0) (xy 0 1.27) (xy -1.016 1.905) (xy 0 2.54) (xy 1.016 1.905) (xy 0 1.27)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+)
+(symbol (lib_id "glugg:ESP32-S3-Zero") (at 127 63.5 0) (unit 1) (exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "a6eb53a4-3c6d-4b1d-9327-de01c0aedd1f")
+(property "Reference" "U1" (at 127 46.99 0) (effects (font (size 1.27 1.27))))
+(property "Value" "ESP32-S3-Zero" (at 127 80.01 0) (effects (font (size 1.27 1.27))))
+(property "Footprint" "glugg:Waveshare_Zero_Socketed" (at 127 63.5 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Datasheet" "" (at 127 63.5 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "Matter controller, plugs into 2 x 1x9 female headers" (at 127 63.5 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(pin "1" (uuid "24fd7cb6-4473-4931-826e-63d4acb142aa")) (pin "2" (uuid "0f796c9c-4b56-4898-9982-81719b8ecc1e")) (pin "3" (uuid "1cf70cac-7c4b-4568-90c8-553ca218e1ea")) (pin "4" (uuid "fbfe5f32-484c-4f3f-bf9b-64a487fa8426")) (pin "5" (uuid "88d3262a-0cd2-4d1d-ae74-b0dbaad659e7")) (pin "6" (uuid "ebc80b60-9d56-4b39-903b-597be4da14c0")) (pin "7" (uuid "4834919e-4bb3-4207-9fcf-187ba1472535")) (pin "8" (uuid "eae2fbc6-ab8a-40f2-a27a-16f54146a7ee")) (pin "9" (uuid "342f50e3-0273-4003-9933-b04efe89ad6c")) (pin "10" (uuid "17cc3217-1c51-4ae1-aaae-e3839cfedb2b")) (pin "11" (uuid "08605876-55a9-4727-a14e-2c4a714d5cbc")) (pin "12" (uuid "b1a6ff6d-1380-4c51-9056-951b99c9a799")) (pin "13" (uuid "4c5895a9-5ae3-4d37-a1b6-4fe59522ac1d")) (pin "14" (uuid "00d14989-1fb7-4cc9-8354-826dfc8f633d")) (pin "15" (uuid "d506946b-41e9-4463-a8df-c42a58bb8387")) (pin "16" (uuid "c7b9792d-c258-41f7-a10b-a04c1760bc48")) (pin "17" (uuid "c835089d-ffc5-4c12-b9f9-8168ccd13687")) (pin "18" (uuid "6f791306-3008-4ceb-a5a2-a8b5f680e708"))
+(instances (project "glugg" (path "/43d927c6-5da1-4ed1-8a2e-da4aaad175a7" (reference "U1") (unit 1)))))
+(wire (pts (xy 114.3 53.34) (xy 111.76 53.34)) (stroke (width 0) (type default)) (uuid "ef3ce18a-c1b1-4575-b2d6-4c4bf5dd5543"))
+(label "+5V" (at 111.76 53.34 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "42ae01b3-74e1-4882-af36-4dbfc4749a7f"))
+(wire (pts (xy 114.3 55.88) (xy 111.76 55.88)) (stroke (width 0) (type default)) (uuid "b3185456-fb93-45b7-9a52-b3689d11db70"))
+(label "GND" (at 111.76 55.88 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "fc647ce3-caac-42d2-b900-68e80cf520c7"))
+(no_connect (at 114.3 58.42) (uuid "f03276d5-c630-4cb9-a4d3-51a595408b70"))
+(no_connect (at 114.3 60.96) (uuid "545d9990-8ddb-44b2-a35e-a7482479ff20"))
+(no_connect (at 114.3 63.5) (uuid "32fdf435-5c67-4023-b386-fdaa50b720a3"))
+(no_connect (at 114.3 66.04) (uuid "a2fff743-e183-4110-b83c-a5d7d59ec063"))
+(no_connect (at 114.3 68.58) (uuid "db82aa70-07a1-40d1-b420-5666474a1a19"))
+(wire (pts (xy 114.3 71.12) (xy 111.76 71.12)) (stroke (width 0) (type default)) (uuid "72874b72-0fbd-4a04-9c1d-1968780b8888"))
+(label "H2_TX" (at 111.76 71.12 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "53564a20-3763-4683-8454-40c58c08e8fb"))
+(wire (pts (xy 114.3 73.66) (xy 111.76 73.66)) (stroke (width 0) (type default)) (uuid "8707f616-48d6-48cb-83bb-62be9251bdd3"))
+(label "S3_TX" (at 111.76 73.66 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "149334dd-63bb-468d-b510-5c3ed9babad2"))
+(no_connect (at 139.7 53.34) (uuid "e3636472-5ecd-404b-ab00-d161dd171933"))
+(no_connect (at 139.7 55.88) (uuid "9cba56bb-2d50-4d91-b56f-11942da44e38"))
+(wire (pts (xy 139.7 58.42) (xy 142.24 58.42)) (stroke (width 0) (type default)) (uuid "efcee417-a38c-40c9-9836-9720842d14f3"))
+(label "LED_3V3" (at 142.24 58.42 0) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "82533582-eaea-46a6-b4a0-adcbfbb22474"))
+(no_connect (at 139.7 60.96) (uuid "d42105f5-2391-4844-ad8b-7ec2e9643c83"))
+(no_connect (at 139.7 63.5) (uuid "5d4e0990-5ff5-4678-897f-63c471266e07"))
+(no_connect (at 139.7 66.04) (uuid "84af187d-6434-4c3b-b529-bbb32b3e5fad"))
+(no_connect (at 139.7 68.58) (uuid "15d3eb6e-8099-4ea7-b511-72ac42aaec7d"))
+(no_connect (at 139.7 71.12) (uuid "aa799ad4-c298-4bda-8292-dc89f0dce845"))
+(no_connect (at 139.7 73.66) (uuid "9905674a-8be4-4c67-b4c4-d7dbea91fb77"))
+(symbol (lib_id "glugg:ESP32-H2-Zero") (at 50.8 63.5 0) (unit 1) (exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "cffa7ad5-954e-4142-b9b1-88fddf4d6397")
+(property "Reference" "U2" (at 50.8 46.99 0) (effects (font (size 1.27 1.27))))
+(property "Value" "ESP32-H2-Zero" (at 50.8 80.01 0) (effects (font (size 1.27 1.27))))
+(property "Footprint" "glugg:Waveshare_Zero_Socketed" (at 50.8 63.5 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Datasheet" "" (at 50.8 63.5 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "Thread radio (ot_rcp), plugs into 2 x 1x9 female headers" (at 50.8 63.5 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(pin "1" (uuid "f3075e23-e774-439e-b771-1120afa7a08a")) (pin "2" (uuid "ded0ec97-7e68-49dd-83bb-726745913567")) (pin "3" (uuid "0b705895-9eb3-4f63-b4f5-e56fd8e5a3d8")) (pin "4" (uuid "4c2f7a95-ad54-4251-8e66-4617d5dea88a")) (pin "5" (uuid "98b3b614-aa65-4442-b004-9eb109bb6261")) (pin "6" (uuid "13c2ce64-10d9-411c-8489-fc9230be9272")) (pin "7" (uuid "05c9bb79-131c-4c9c-80b3-e5d85939e20c")) (pin "8" (uuid "878e253f-a5af-4a90-8dd4-1221f305b1bf")) (pin "9" (uuid "f7051a17-db5e-4cb6-b61c-b12d558ec7ef")) (pin "10" (uuid "bad3c3f9-f78b-4706-b34f-158fd56ebadd")) (pin "11" (uuid "59c1398e-48d2-4a66-b0cc-05d0916d56a2")) (pin "12" (uuid "4deb5cd1-1377-4481-b67d-7acfb77970ce")) (pin "13" (uuid "a0a1039b-8e2d-453e-8781-55108e3a6df4")) (pin "14" (uuid "a8273123-5cf9-4581-a13c-8c7de9673d92")) (pin "15" (uuid "433e5a9d-424f-42f1-accd-d2db2e3e57cf")) (pin "16" (uuid "c67a20d6-dcf6-45ad-b7bc-edc102bb5c05")) (pin "17" (uuid "bcac8933-757e-4ee1-8297-2701830bf396")) (pin "18" (uuid "fd624136-95ff-445c-8b1c-469db8dae645"))
+(instances (project "glugg" (path "/43d927c6-5da1-4ed1-8a2e-da4aaad175a7" (reference "U2") (unit 1)))))
+(wire (pts (xy 38.1 53.34) (xy 35.56 53.34)) (stroke (width 0) (type default)) (uuid "c6711d92-4759-45ae-b2ce-c79ba8005e4f"))
+(label "H2_5V" (at 35.56 53.34 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "83beeda0-ccc7-4c96-b930-c001756ffca4"))
+(wire (pts (xy 38.1 55.88) (xy 35.56 55.88)) (stroke (width 0) (type default)) (uuid "5bcd4bdd-55b5-45af-983a-2b69176e220e"))
+(label "GND" (at 35.56 55.88 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "27906cd9-23da-4909-a6d7-9342264e8cc7"))
+(no_connect (at 38.1 58.42) (uuid "eccf0b0d-1198-46e0-8417-a4ddd790a2ee"))
+(no_connect (at 38.1 60.96) (uuid "11b67ea6-9331-4678-82de-f6fb13f0fefa"))
+(no_connect (at 38.1 63.5) (uuid "5d6bbfed-22d2-4666-bb5e-52e4c9f30652"))
+(no_connect (at 38.1 66.04) (uuid "99292b99-1553-4c9a-9865-521f76ba9556"))
+(no_connect (at 38.1 68.58) (uuid "e80682a7-70f2-4661-80b4-4b9a5705e081"))
+(no_connect (at 38.1 71.12) (uuid "5d764c8e-ab26-4991-8d8d-3252cc1a4018"))
+(no_connect (at 38.1 73.66) (uuid "a227ea57-19b1-4437-9935-78a246882ad3"))
+(wire (pts (xy 63.5 53.34) (xy 66.04 53.34)) (stroke (width 0) (type default)) (uuid "9a973130-2861-4423-bae1-93da0a79f6f3"))
+(label "H2_TX" (at 66.04 53.34 0) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "64509192-9ead-47f9-b76e-e49582b0446d"))
+(wire (pts (xy 63.5 55.88) (xy 66.04 55.88)) (stroke (width 0) (type default)) (uuid "12e53c7c-c6f5-4679-b9e0-868e196c03de"))
+(label "H2_RX" (at 66.04 55.88 0) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "ac2a0c38-4fba-429a-928c-814c6f861eb9"))
+(no_connect (at 63.5 58.42) (uuid "1eb7036f-af36-4a42-96a9-08483b76277f"))
+(no_connect (at 63.5 60.96) (uuid "735aef7c-77de-44fd-bbf9-783117d338fc"))
+(no_connect (at 63.5 63.5) (uuid "6cc18041-12b1-4965-92aa-1492896642ae"))
+(no_connect (at 63.5 66.04) (uuid "29ba3c4e-c480-46eb-bfae-ccb24f03117d"))
+(no_connect (at 63.5 68.58) (uuid "096f8941-5deb-4c62-a977-d67f521eaa60"))
+(no_connect (at 63.5 71.12) (uuid "7b5aff1a-527e-4339-a98f-b9aeea287780"))
+(no_connect (at 63.5 73.66) (uuid "ffa01426-c010-42fe-8620-b2c2e1f3a9b9"))
+(symbol (lib_id "glugg:74HCT32") (at 210.82 63.5 0) (unit 1) (exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "e482f31b-39de-44cc-a193-858995f4dc16")
+(property "Reference" "U3" (at 203.2 46.99 0) (effects (font (size 1.27 1.27))))
+(property "Value" "74HCT32" (at 210.82 80.01 0) (effects (font (size 1.27 1.27))))
+(property "Footprint" "Package_DIP:DIP-14_W7.62mm_Socket" (at 210.82 63.5 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Datasheet" "" (at 210.82 63.5 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "Quad OR gate; gate 3 buffers the LED data to 5 V. In a DIP socket." (at 210.82 63.5 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(pin "1" (uuid "551aa128-fd51-4ac7-9024-19cb78591f55")) (pin "2" (uuid "2ffd9121-269c-42dd-bb56-67c6fa95e7cb")) (pin "4" (uuid "e3002060-78ee-4e8b-817f-46058ab2de26")) (pin "5" (uuid "715dc652-5ff1-442e-a3d3-659ea267287d")) (pin "9" (uuid "9a61b3b9-b781-475b-a503-8ea48f520af3")) (pin "10" (uuid "cc5b4c45-97a9-4fc2-a2ef-b68e04470f7c")) (pin "12" (uuid "c7186687-065c-4987-a457-b8cf178d5647")) (pin "13" (uuid "ba8b0e27-4249-4a1d-ae3a-8cf52f1b3fce")) (pin "3" (uuid "5ee64f72-5af3-418e-8001-5bdc437209ae")) (pin "6" (uuid "735a33f2-4f7b-4c9f-a6ee-9db12faaaf36")) (pin "8" (uuid "c856c850-153c-4380-95c4-90815f79b208")) (pin "11" (uuid "5c973f4a-c74c-4c6c-ac78-365a57457272")) (pin "14" (uuid "8eb9f5f3-d74a-4451-8f4a-4d98e65e8133")) (pin "7" (uuid "be3f33bd-d5e1-4b88-aa46-33bb27428fe5"))
+(instances (project "glugg" (path "/43d927c6-5da1-4ed1-8a2e-da4aaad175a7" (reference "U3") (unit 1)))))
+(wire (pts (xy 198.12 54.61) (xy 195.58 54.61)) (stroke (width 0) (type default)) (uuid "cce3049a-3715-4ff7-9d94-8f7a771a1772"))
+(label "+5V" (at 195.58 54.61 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "9c8ac395-af7d-4f4f-80da-9e1c87e852de"))
+(wire (pts (xy 198.12 57.15) (xy 195.58 57.15)) (stroke (width 0) (type default)) (uuid "c72afe59-cfcf-43fd-a7cf-359a9b8c9d16"))
+(label "+5V" (at 195.58 57.15 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "bef84458-d747-47ca-90ae-e97283a02f5b"))
+(wire (pts (xy 198.12 59.69) (xy 195.58 59.69)) (stroke (width 0) (type default)) (uuid "8691a7ca-fd75-4882-b641-2dd26b49ba1a"))
+(label "GND" (at 195.58 59.69 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "f865e610-2755-4844-bc9f-fbe66da84523"))
+(wire (pts (xy 198.12 62.23) (xy 195.58 62.23)) (stroke (width 0) (type default)) (uuid "26815b5c-4edf-42fd-ab0f-69137faa5df4"))
+(label "GND" (at 195.58 62.23 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "2f5fd626-6f6c-40ae-b82e-2a53a0f12df8"))
+(wire (pts (xy 198.12 64.77) (xy 195.58 64.77)) (stroke (width 0) (type default)) (uuid "b1d28600-de80-4592-8e79-f338d6b879c3"))
+(label "LED_3V3" (at 195.58 64.77 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "cf0b0681-166d-416e-a105-5baf73028cce"))
+(wire (pts (xy 198.12 67.31) (xy 195.58 67.31)) (stroke (width 0) (type default)) (uuid "bb8771f3-708e-49b0-95fa-c14050a95c99"))
+(label "LED_3V3" (at 195.58 67.31 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "a5788510-164b-4dac-b369-89f5126515eb"))
+(wire (pts (xy 198.12 69.85) (xy 195.58 69.85)) (stroke (width 0) (type default)) (uuid "66acb3a2-65d1-4427-b2d8-f5cc065bfb7b"))
+(label "+5V" (at 195.58 69.85 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "0373e1ce-d9cd-407f-a88e-e33c674c6378"))
+(wire (pts (xy 198.12 72.39) (xy 195.58 72.39)) (stroke (width 0) (type default)) (uuid "c383e386-9bf4-409d-bb5b-f632a96d72c8"))
+(label "+5V" (at 195.58 72.39 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "45507957-b817-4b03-82c7-15b93e8846f6"))
+(no_connect (at 223.52 55.88) (uuid "98bdb3c5-b24c-4418-9f98-c367b6c84bc8"))
+(no_connect (at 223.52 60.96) (uuid "83679025-ea57-4a9a-b115-5087ec7cc85b"))
+(wire (pts (xy 223.52 66.04) (xy 226.06 66.04)) (stroke (width 0) (type default)) (uuid "a75802f1-cb7b-42d5-84e2-b54e13bbe22b"))
+(label "LED_5V" (at 226.06 66.04 0) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "564dabb6-03a6-4d60-94c0-237c045b9b19"))
+(no_connect (at 223.52 71.12) (uuid "af5f273c-94dc-4856-8299-648750c6c4aa"))
+(wire (pts (xy 210.82 49.53) (xy 210.82 46.99)) (stroke (width 0) (type default)) (uuid "aa67f77e-c365-4e18-b8ba-0bad872d859e"))
+(label "+5V" (at 210.82 46.99 90) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "a059a5e7-8d5e-4cf5-9c0b-fe28e2e2cd1e"))
+(wire (pts (xy 210.82 77.47) (xy 210.82 80.01)) (stroke (width 0) (type default)) (uuid "adf0b0a1-f999-440a-aabe-170193853249"))
+(label "GND" (at 210.82 80.01 270) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "395bd158-5ff6-438c-82a7-7e8187ba40bb"))
+(symbol (lib_id "Device:D") (at 50.8 114.3 0) (unit 1) (exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "ddfbec10-371f-4fa3-8eb3-de2692e35671")
+(property "Reference" "D1" (at 50.8 109.22 0) (effects (font (size 1.27 1.27))))
+(property "Value" "1N5817" (at 50.8 119.38 0) (effects (font (size 1.27 1.27))))
+(property "Footprint" "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal" (at 50.8 114.3 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Datasheet" "" (at 50.8 114.3 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "S3 5V -> H2 5V, keeps the two USB ports apart" (at 50.8 114.3 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(pin "1" (uuid "1d1fd9c9-c445-43a5-bf0c-32f5aab07a5c")) (pin "2" (uuid "fff8bf42-0afe-4995-b81f-3bb3cf54fe9e"))
+(instances (project "glugg" (path "/43d927c6-5da1-4ed1-8a2e-da4aaad175a7" (reference "D1") (unit 1)))))
+(wire (pts (xy 46.99 114.3) (xy 44.45 114.3)) (stroke (width 0) (type default)) (uuid "1001c882-2293-483b-8267-ddf107de5da1"))
+(label "H2_5V" (at 44.45 114.3 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "b0319a51-0f38-461d-8b0d-8dba9f10dc77"))
+(wire (pts (xy 54.61 114.3) (xy 57.15 114.3)) (stroke (width 0) (type default)) (uuid "c47cb478-d460-4e92-bd37-92cd049512d4"))
+(label "+5V" (at 57.15 114.3 0) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "c45f04e4-e789-464d-8b90-7426184371d2"))
+(symbol (lib_id "Device:R") (at 101.6 114.3 0) (unit 1) (exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "9881f30c-b97c-47f2-8e34-84a55f880e08")
+(property "Reference" "R1" (at 101.6 109.22 0) (effects (font (size 1.27 1.27))))
+(property "Value" "1k" (at 101.6 119.38 0) (effects (font (size 1.27 1.27))))
+(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" (at 101.6 114.3 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Datasheet" "" (at 101.6 114.3 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "S3 TX -> H2 RX series resistor" (at 101.6 114.3 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(pin "1" (uuid "39296fdd-5512-4436-a6eb-b13a1d7bf225")) (pin "2" (uuid "91e5e6fc-de94-47fd-9f7f-2fd421f0a3cc"))
+(instances (project "glugg" (path "/43d927c6-5da1-4ed1-8a2e-da4aaad175a7" (reference "R1") (unit 1)))))
+(wire (pts (xy 101.6 110.49) (xy 101.6 107.95)) (stroke (width 0) (type default)) (uuid "21a1f2f7-81b1-40f6-81b8-79daefcf0923"))
+(label "S3_TX" (at 101.6 107.95 90) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "709e7409-9116-41df-aea7-38168fa3faa6"))
+(wire (pts (xy 101.6 118.11) (xy 101.6 120.65)) (stroke (width 0) (type default)) (uuid "7315a7e6-54c2-480b-96a2-7f3527bd9d99"))
+(label "H2_RX" (at 101.6 120.65 270) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "20c91b7d-6d3c-47a7-a132-fda819564bd7"))
+(symbol (lib_id "Device:R") (at 152.4 114.3 0) (unit 1) (exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "616d6ccc-7636-45fd-ab6d-3b62d152c1da")
+(property "Reference" "R2" (at 152.4 109.22 0) (effects (font (size 1.27 1.27))))
+(property "Value" "10k" (at 152.4 119.38 0) (effects (font (size 1.27 1.27))))
+(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" (at 152.4 114.3 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Datasheet" "" (at 152.4 114.3 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "Pull-down on GPIO13 while the S3 boots" (at 152.4 114.3 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(pin "1" (uuid "d440cd12-1cb6-47be-a7c4-900ab757c2db")) (pin "2" (uuid "44a08be0-cd2f-4ecb-b6c0-7a2b1ca4ce8c"))
+(instances (project "glugg" (path "/43d927c6-5da1-4ed1-8a2e-da4aaad175a7" (reference "R2") (unit 1)))))
+(wire (pts (xy 152.4 110.49) (xy 152.4 107.95)) (stroke (width 0) (type default)) (uuid "5885d6d1-c0a9-4163-b58b-7ad3ad13b5a3"))
+(label "LED_3V3" (at 152.4 107.95 90) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "b5858c8c-1dd9-46da-a6e7-b6c1e05565a6"))
+(wire (pts (xy 152.4 118.11) (xy 152.4 120.65)) (stroke (width 0) (type default)) (uuid "2455be97-f50e-4d28-b187-15b39ffd62c4"))
+(label "GND" (at 152.4 120.65 270) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "b22f29bc-c5de-4074-b8b8-effd5c527685"))
+(symbol (lib_id "Device:R") (at 203.2 114.3 0) (unit 1) (exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "4ec41322-46bb-4942-9c56-37abc69b1d02")
+(property "Reference" "R3" (at 203.2 109.22 0) (effects (font (size 1.27 1.27))))
+(property "Value" "330" (at 203.2 119.38 0) (effects (font (size 1.27 1.27))))
+(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" (at 203.2 114.3 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Datasheet" "" (at 203.2 114.3 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "In series with the LED data" (at 203.2 114.3 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(pin "1" (uuid "ec0244fc-2ce9-4742-9e5c-29d1163c7f10")) (pin "2" (uuid "5693d1e7-f549-4929-b525-4c166d496101"))
+(instances (project "glugg" (path "/43d927c6-5da1-4ed1-8a2e-da4aaad175a7" (reference "R3") (unit 1)))))
+(wire (pts (xy 203.2 110.49) (xy 203.2 107.95)) (stroke (width 0) (type default)) (uuid "568347ca-a90a-4394-9f99-c3ddc31121dc"))
+(label "LED_5V" (at 203.2 107.95 90) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "a9974a74-fdde-4dcb-82a3-1f53abba54c9"))
+(wire (pts (xy 203.2 118.11) (xy 203.2 120.65)) (stroke (width 0) (type default)) (uuid "0741d9f8-c43c-4f33-be51-182234eaa95f"))
+(label "DIN" (at 203.2 120.65 270) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "23db8677-efc0-40e9-a02a-7a16e9ae1527"))
+(symbol (lib_id "Device:C") (at 101.6 152.4 0) (unit 1) (exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "c39689fb-4b07-495e-bf3b-6c004b431d33")
+(property "Reference" "C1" (at 101.6 147.32 0) (effects (font (size 1.27 1.27))))
+(property "Value" "100n" (at 101.6 157.48 0) (effects (font (size 1.27 1.27))))
+(property "Footprint" "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm" (at 101.6 152.4 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Datasheet" "" (at 101.6 152.4 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "Decoupling at the 74HCT32" (at 101.6 152.4 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(pin "1" (uuid "2bb533e0-ae3d-4801-b1e1-14c17657bfc4")) (pin "2" (uuid "4dd10922-4d01-4f6b-9b84-fe4063b95676"))
+(instances (project "glugg" (path "/43d927c6-5da1-4ed1-8a2e-da4aaad175a7" (reference "C1") (unit 1)))))
+(wire (pts (xy 101.6 148.59) (xy 101.6 146.05)) (stroke (width 0) (type default)) (uuid "8e61f5a4-ccc6-4a6c-9479-a9c94a13043a"))
+(label "+5V" (at 101.6 146.05 90) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "d9b699b0-5a2e-4211-94cb-426e1dc5ae26"))
+(wire (pts (xy 101.6 156.21) (xy 101.6 158.75)) (stroke (width 0) (type default)) (uuid "b47e5382-c20f-4a12-be48-47323b444d89"))
+(label "GND" (at 101.6 158.75 270) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "1a4ee4f4-682f-490d-910e-666ea25450f5"))
+(symbol (lib_id "Device:C_Polarized") (at 152.4 152.4 0) (unit 1) (exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "1621ba84-f26e-479d-ad4a-32518738a97d")
+(property "Reference" "C2" (at 152.4 147.32 0) (effects (font (size 1.27 1.27))))
+(property "Value" "1000u 16V" (at 152.4 157.48 0) (effects (font (size 1.27 1.27))))
+(property "Footprint" "Capacitor_THT:CP_Radial_D10.0mm_P5.00mm" (at 152.4 152.4 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Datasheet" "" (at 152.4 152.4 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "Across the LED panel's power" (at 152.4 152.4 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(pin "1" (uuid "a3c86979-270d-4c78-8df9-cba805b9f957")) (pin "2" (uuid "2bc26991-fafc-4a85-9b8e-f76371c8e6d8"))
+(instances (project "glugg" (path "/43d927c6-5da1-4ed1-8a2e-da4aaad175a7" (reference "C2") (unit 1)))))
+(wire (pts (xy 152.4 148.59) (xy 152.4 146.05)) (stroke (width 0) (type default)) (uuid "bcd2a2e9-4ec5-42e9-840c-18cbc04b543d"))
+(label "+5V" (at 152.4 146.05 90) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "da1babd3-aa9e-4ee3-9087-4d02628a2e5c"))
+(wire (pts (xy 152.4 156.21) (xy 152.4 158.75)) (stroke (width 0) (type default)) (uuid "faf56ede-a2ac-4216-958c-78da30e3751a"))
+(label "GND" (at 152.4 158.75 270) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "7a47addd-c5f8-4c1b-912d-15fa8756e586"))
+(symbol (lib_id "Connector:Screw_Terminal_01x03") (at 215.9 152.4 0) (unit 1) (exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "d46b0e87-e779-49ae-85af-91c6bb667376")
+(property "Reference" "J1" (at 215.9 147.32 0) (effects (font (size 1.27 1.27))))
+(property "Value" "LED panel" (at 215.9 157.48 0) (effects (font (size 1.27 1.27))))
+(property "Footprint" "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3-5.08_1x03_P5.08mm_Horizontal" (at 215.9 152.4 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Datasheet" "" (at 215.9 152.4 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "1 = 5V, 2 = DIN, 3 = GND" (at 215.9 152.4 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(pin "1" (uuid "c44f92d2-8d2d-46ac-b411-47407612e598")) (pin "2" (uuid "1ddc0667-df47-41d9-82cc-184c93910f5f")) (pin "3" (uuid "ebf95c09-43ec-43a8-9869-223dcd8f8d25"))
+(instances (project "glugg" (path "/43d927c6-5da1-4ed1-8a2e-da4aaad175a7" (reference "J1") (unit 1)))))
+(wire (pts (xy 210.82 149.86) (xy 208.28 149.86)) (stroke (width 0) (type default)) (uuid "730422d8-9188-4a80-8e8f-40467c0142ca"))
+(label "+5V" (at 208.28 149.86 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "1fd2083d-17c9-4f9a-98b2-2f757a665f1a"))
+(wire (pts (xy 210.82 152.4) (xy 208.28 152.4)) (stroke (width 0) (type default)) (uuid "a6b6f087-e793-4abd-bd55-dc08617b8a58"))
+(label "DIN" (at 208.28 152.4 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "32837b7b-ef0f-4b35-8f60-d0e3fe7a3111"))
+(wire (pts (xy 210.82 154.94) (xy 208.28 154.94)) (stroke (width 0) (type default)) (uuid "17cbaa4a-c5a4-4d87-b297-91b9ba65bdc0"))
+(label "GND" (at 208.28 154.94 180) (effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "01c719c4-7e95-401c-863d-dfc74489a6e5"))
+(symbol (lib_id "Mechanical:MountingHole") (at 40.64 180.34 0) (unit 1) (exclude_from_sim no) (in_bom no) (on_board yes) (dnp no) (uuid "0266bc09-35a9-464f-912e-a3c8e6e5458d")
+(property "Reference" "H1" (at 40.64 175.26 0) (effects (font (size 1.27 1.27))))
+(property "Value" "M3" (at 40.64 185.42 0) (effects (font (size 1.27 1.27))))
+(property "Footprint" "MountingHole:MountingHole_3.2mm_M3" (at 40.64 180.34 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Datasheet" "" (at 40.64 180.34 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "" (at 40.64 180.34 0) (effects (font (size 1.27 1.27)) (hide yes)))
+
+(instances (project "glugg" (path "/43d927c6-5da1-4ed1-8a2e-da4aaad175a7" (reference "H1") (unit 1)))))
+(symbol (lib_id "Mechanical:MountingHole") (at 55.88 180.34 0) (unit 1) (exclude_from_sim no) (in_bom no) (on_board yes) (dnp no) (uuid "f735d4d4-de74-45b3-b66c-dd222722e5e5")
+(property "Reference" "H2" (at 55.88 175.26 0) (effects (font (size 1.27 1.27))))
+(property "Value" "M3" (at 55.88 185.42 0) (effects (font (size 1.27 1.27))))
+(property "Footprint" "MountingHole:MountingHole_3.2mm_M3" (at 55.88 180.34 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Datasheet" "" (at 55.88 180.34 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "" (at 55.88 180.34 0) (effects (font (size 1.27 1.27)) (hide yes)))
+
+(instances (project "glugg" (path "/43d927c6-5da1-4ed1-8a2e-da4aaad175a7" (reference "H2") (unit 1)))))
+(symbol (lib_id "Mechanical:MountingHole") (at 71.12 180.34 0) (unit 1) (exclude_from_sim no) (in_bom no) (on_board yes) (dnp no) (uuid "a613f365-48a1-441a-b4ea-f31ab8985aea")
+(property "Reference" "H3" (at 71.12 175.26 0) (effects (font (size 1.27 1.27))))
+(property "Value" "M3" (at 71.12 185.42 0) (effects (font (size 1.27 1.27))))
+(property "Footprint" "MountingHole:MountingHole_3.2mm_M3" (at 71.12 180.34 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Datasheet" "" (at 71.12 180.34 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "" (at 71.12 180.34 0) (effects (font (size 1.27 1.27)) (hide yes)))
+
+(instances (project "glugg" (path "/43d927c6-5da1-4ed1-8a2e-da4aaad175a7" (reference "H3") (unit 1)))))
+(symbol (lib_id "Mechanical:MountingHole") (at 86.36 180.34 0) (unit 1) (exclude_from_sim no) (in_bom no) (on_board yes) (dnp no) (uuid "82fb5b16-a764-4bf6-844b-d4d115c0dfc7")
+(property "Reference" "H4" (at 86.36 175.26 0) (effects (font (size 1.27 1.27))))
+(property "Value" "M3" (at 86.36 185.42 0) (effects (font (size 1.27 1.27))))
+(property "Footprint" "MountingHole:MountingHole_3.2mm_M3" (at 86.36 180.34 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Datasheet" "" (at 86.36 180.34 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "" (at 86.36 180.34 0) (effects (font (size 1.27 1.27)) (hide yes)))
+
+(instances (project "glugg" (path "/43d927c6-5da1-4ed1-8a2e-da4aaad175a7" (reference "H4") (unit 1)))))
+(symbol (lib_id "power:PWR_FLAG") (at 40.64 139.7 0) (unit 1) (exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "d0c3b7a8-0ea5-4532-8ce6-32812e3eda1a")
+(property "Reference" "#FLG01" (at 40.64 137.795 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Value" "PWR_FLAG" (at 40.64 135.89 0) (effects (font (size 1.27 1.27))))
+(property "Footprint" "" (at 40.64 139.7 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Datasheet" "~" (at 40.64 139.7 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "" (at 40.64 139.7 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(pin "1" (uuid "e5018f18-6c05-4a4d-ae85-2e2c38a8fb23"))
+(instances (project "glugg" (path "/43d927c6-5da1-4ed1-8a2e-da4aaad175a7" (reference "#FLG01") (unit 1)))))
+(wire (pts (xy 40.64 139.7) (xy 40.64 142.24)) (stroke (width 0) (type default)) (uuid "e28c51a5-33a9-4e28-9e9d-4a697668a843"))
+(label "H2_5V" (at 40.64 142.24 0) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "7e521a1c-6181-450b-ae7d-4425b2677a15"))
+(text "Glugg carrier board rev A. Same circuit as the verified protoboard build (CLAUDE.md, Wiring)." (exclude_from_sim no) (at 25.4 22.86 0) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "39e4078e-849c-4371-9823-d6895a602a1c"))
+(text "Power: USB-C charger into the S3. S3 5V pin = +5V; H2 fed through D1. U1/U2 plug into female headers." (exclude_from_sim no) (at 25.4 27.94 0) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "57c43f60-38bc-4b20-9adc-3a34dd752e06"))
+(text "LED data: GPIO13 -> U3 gate 3 (pins 9+10, R2 pull-down) -> pin 8 -> R3 -> J1 DIN. Unused inputs tied off." (exclude_from_sim no) (at 25.4 33.02 0) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "76ed0956-a11c-44dc-84af-baec2c7fd204"))
+(sheet_instances (path "/" (page "1")))
+(embedded_fonts no))

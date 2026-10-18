@@ -38,6 +38,8 @@ You'll also need a USB-C charger and cable, and solid-core wire.
 - The hole-by-hole protoboard layout is in [`docs/protoboard-small.svg`](docs/protoboard-small.svg) (top) and [`docs/protoboard-small-wiring.svg`](docs/protoboard-small-wiring.svg) (underside).
 - The two boards talk over two crossed UART wires, with the 1 kΩ resistor at the S3 end.
 
+A printed carrier board with the same circuit is in [`hardware/pcb/`](hardware/pcb/) (KiCad, rev A, not yet ordered).
+
 ## Usage
 
 Plug in the power. A dim white ring breathes out from the middle of the panel for 10–20 seconds while the network starts. Then each sensor's LED shows its window:
